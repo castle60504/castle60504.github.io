@@ -465,6 +465,7 @@ header h1{font-size:1.2rem;font-weight:800;}
     <button class="btn-pair-cfg" style="background:#7f1d1d" onclick="resetSession()">🔄 清除</button>
     <button class="btn-update" id="btn-update" onclick="manualCheckUpdate()">🔄 更新</button>
     <button id="btn-qr" class="btn-update" onclick="isPro()?showQRCode():showUpgradeHint('QR碼觀看者為 Pro 功能')" style="background:#0f4c75;border-color:#1a6fa8;color:#7dd3fc">📱 QR碼</button>
+    <button class="btn-update" onclick="showJoinQR()" style="background:#14532d;border-color:#16a34a;color:#4ade80">🏃 加入QR</button>
     <button class="btn-update" onclick="forceSyncSession()" style="background:#1a3a1a;border-color:#4ade80;color:#4ade80" title="強制同步到 Firestore">🔄 同步</button>
     <button class="btn-update" onclick="openHelpModal()" style="background:#1e3a5f;border-color:#3b82f6;color:#93c5fd">❓ 說明</button>
     <button id="btn-signout" onclick="signOut()" style="display:none;background:#3b0764;color:#e9d5ff;border:1px solid #6b21a8;border-radius:7px;padding:7px 13px;font-size:0.92rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">🚪 登出</button>
@@ -718,6 +719,20 @@ header h1{font-size:1.2rem;font-weight:800;}
   </div>
 </div>
 
+<!-- Join QR Code Modal -->
+<div class="overlay" id="modal-join-qr" onclick="if(event.target.id==='modal-join-qr')document.getElementById('modal-join-qr').style.display='none'" style="display:none">
+  <div class="modal" style="width:300px;text-align:center">
+    <h3 style="margin-bottom:6px">🏃 球員加入 QR Code</h3>
+    <p style="font-size:0.73rem;color:var(--txt2);margin-bottom:14px">球員掃描後填資料，主辦人確認即可進候場</p>
+    <div id="join-qr-container" style="display:inline-block;background:#fff;padding:12px;border-radius:10px;margin-bottom:10px"></div>
+    <div id="join-qr-url" style="font-size:0.62rem;color:var(--mut);word-break:break-all;margin-bottom:14px"></div>
+    <div style="display:flex;gap:8px">
+      <button class="mbtn mcancel" style="flex:1" onclick="document.getElementById('modal-join-qr').style.display='none'">關閉</button>
+      <button class="mbtn mok" style="flex:1" onclick="copyJoinUrl()">複製連結</button>
+    </div>
+  </div>
+</div>
+
 <!-- QR Code Modal -->
 <div class="overlay" id="modal-qr" onclick="if(event.target.id==='modal-qr')document.getElementById('modal-qr').style.display='none'" style="display:none">
   <div class="modal" style="width:300px;text-align:center">
@@ -728,6 +743,44 @@ header h1{font-size:1.2rem;font-weight:800;}
     <div style="display:flex;gap:8px">
       <button class="mbtn mcancel" style="flex:1" onclick="document.getElementById('modal-qr').style.display='none'">關閉</button>
       <button class="mbtn mok" style="flex:1" onclick="copyQRUrl()">複製連結</button>
+    </div>
+  </div>
+</div>
+
+<!-- Join Overlay (for ?join=UID mode) -->
+<div id="join-overlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:5000;overflow-y:auto;padding:24px 16px">
+  <div style="max-width:400px;margin:0 auto">
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="font-size:2.5rem">🏸</div>
+      <h1 style="font-size:1.3rem;font-weight:800;margin:8px 0 4px">加入候場名單</h1>
+      <p style="font-size:0.8rem;color:var(--mut)">填寫資料後，主辦人確認即可上場</p>
+    </div>
+    <div style="background:var(--sur);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:14px">
+      <div>
+        <label style="font-size:0.78rem;color:var(--mut);font-weight:600;display:block;margin-bottom:5px">姓名</label>
+        <input id="join-name" type="text" placeholder="請輸入姓名" autocomplete="off"
+          style="width:100%;box-sizing:border-box;background:var(--sur2);border:1.5px solid var(--bdr);border-radius:8px;padding:10px 12px;color:var(--txt);font-size:1rem;outline:none">
+      </div>
+      <div>
+        <label style="font-size:0.78rem;color:var(--mut);font-weight:600;display:block;margin-bottom:5px">等級</label>
+        <select id="join-lvl" style="width:100%;background:var(--sur2);border:1.5px solid var(--bdr);border-radius:8px;padding:10px 12px;color:var(--txt);font-size:1rem;outline:none;-webkit-appearance:none">
+          <option value="" disabled selected>請選擇</option>
+          <option value="1">新</option><option value="2">初</option><option value="3">中</option><option value="4">高</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:0.78rem;color:var(--mut);font-weight:600;display:block;margin-bottom:5px">可打時間</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input id="join-time-start" type="time" style="flex:1;background:var(--sur2);border:1.5px solid var(--bdr);border-radius:8px;padding:10px 8px;color:var(--txt);font-size:1rem;outline:none">
+          <span style="color:var(--mut)">到</span>
+          <input id="join-time-end" type="time" style="flex:1;background:var(--sur2);border:1.5px solid var(--bdr);border-radius:8px;padding:10px 8px;color:var(--txt);font-size:1rem;outline:none">
+        </div>
+      </div>
+      <button id="join-submit-btn" onclick="submitJoinRequest()"
+        style="background:#16a34a;border:none;border-radius:10px;padding:13px;color:#fff;font-size:1rem;font-weight:700;cursor:pointer;width:100%;margin-top:4px">
+        送出申請
+      </button>
+      <div id="join-msg" style="text-align:center;font-size:0.85rem;min-height:20px"></div>
     </div>
   </div>
 </div>
@@ -749,6 +802,9 @@ header h1{font-size:1.2rem;font-weight:800;}
     <div id="viewer-empty" style="color:var(--mut);font-size:0.8rem;text-align:center;padding:30px 0;display:none">等待主持人開始比賽...</div>
   </div>
 </div>
+
+<!-- Join Request Notification -->
+<div id="join-notify-stack" style="position:fixed;bottom:80px;right:12px;z-index:8000;display:flex;flex-direction:column;gap:8px;max-width:300px"></div>
 
 <!-- Score Input Modal -->
 <div class="overlay" id="modal-score" onclick="closeScoreModal(event)">
@@ -819,6 +875,8 @@ function showUpgradeHint(msg){
 const _urlParams = new URLSearchParams(location.search);
 const _viewUID = _urlParams.get('view');
 const isViewerMode = !!_viewUID;
+const _joinUID = _urlParams.get('join');
+const isJoinMode = !!_joinUID;
 
 if(isViewerMode){
   document.addEventListener('DOMContentLoaded', function(){
@@ -849,6 +907,45 @@ if(isViewerMode){
       console.warn('viewer error:', err);
     });
   });
+}
+
+// ── Join Mode (球員加入) ──────────────────────────────────
+if(isJoinMode){
+  document.addEventListener('DOMContentLoaded', function(){
+    document.getElementById('join-overlay').style.display = 'block';
+    document.getElementById('modal-login').style.display = 'none';
+    document.getElementById('modal-setup').style.display = 'none';
+  });
+}
+
+async function submitJoinRequest(){
+  const name = document.getElementById('join-name').value.trim();
+  const lvl  = document.getElementById('join-lvl').value;
+  const ts   = document.getElementById('join-time-start').value;
+  const te   = document.getElementById('join-time-end').value;
+  const msg  = document.getElementById('join-msg');
+  const btn  = document.getElementById('join-submit-btn');
+  if(!name){ msg.textContent='請輸入姓名'; msg.style.color='#f87171'; return; }
+  if(!lvl){  msg.textContent='請選擇等級'; msg.style.color='#f87171'; return; }
+  if(!ts||!te){ msg.textContent='請輸入時間範圍'; msg.style.color='#f87171'; return; }
+  btn.disabled=true; btn.textContent='送出中...';
+  const TIER=['','新','初','中','高'];
+  try {
+    await db.collection('joinRequests').add({
+      organizerUid: _joinUID,
+      name, level: lvl, levelName: TIER[parseInt(lvl)]||lvl,
+      timeRange: ts + ' – ' + te,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      status: 'pending'
+    });
+    msg.textContent = '✅ 已送出！等待主辦人確認';
+    msg.style.color = '#4ade80';
+    btn.textContent = '已送出';
+  } catch(e) {
+    msg.textContent = '❌ 送出失敗：' + e.message;
+    msg.style.color = '#f87171';
+    btn.disabled = false; btn.textContent = '送出申請';
+  }
 }
 
 function renderViewerUI(updatedAt){
@@ -882,7 +979,7 @@ function renderViewerUI(updatedAt){
   var waiting = players.filter(function(p){ return p.status==='waiting'||p.status==='cooling'; });
   waiting.forEach(function(p){
     var chip = document.createElement('div');
-    chip.style.cssText = 'background:var(--sur);border:1px solid var(--bdr);border-radius:999px;padding:5px 13px;font-size:0.82rem;font-weight:600;'+(p.status==='cooling'?'color:#fbbf24;border-color:#92400e':'');
+    chip.style.cssText = 'background:var(--sur);border:1px solid var(--bdr);border-radius:999px;padding:5px 13px;font-size:0.82rem;font-weight:600;';
     chip.textContent = p.name;
     queueDiv.appendChild(chip);
   });
@@ -959,6 +1056,11 @@ async function saveUserRoster(){
 
 // ── Firestore Session 同步（供觀看者用）─────────────────
 var _syncTimer = null;
+var _syncInterval = null;
+function startAutoSync(){
+  if(_syncInterval) return;
+  _syncInterval = setInterval(function(){ syncSession(true); }, 1000);
+}
 function syncSession(immediate){
   if(!currentUser || isViewerMode) return;
   clearTimeout(_syncTimer);
@@ -992,6 +1094,70 @@ function syncSession(immediate){
 }
 
 // ── QR Code ──────────────────────────────────────────────
+// ── Join Requests (主辦人端) ─────────────────────────────
+function startJoinListener(){
+  if(!currentUser) return;
+  db.collection('joinRequests')
+    .where('organizerUid','==',currentUser.uid)
+    .where('status','==','pending')
+    .onSnapshot(function(snap){
+      snap.docChanges().forEach(function(change){
+        if(change.type==='added') showJoinNotify(change.doc);
+      });
+    });
+}
+
+function showJoinNotify(doc){
+  const d = doc.data();
+  const stack = document.getElementById('join-notify-stack');
+  const card = document.createElement('div');
+  card.id = 'jreq-'+doc.id;
+  card.style.cssText = 'background:#1e293b;border:2px solid #4ade80;border-radius:12px;padding:12px 14px;box-shadow:0 4px 20px rgba(0,0,0,.6);animation:fadeIn .3s ease';
+  card.innerHTML = `
+    <div style="font-size:0.7rem;color:var(--mut);margin-bottom:4px">🏃 球員申請加入</div>
+    <div style="font-weight:700;font-size:1rem;margin-bottom:2px">${d.name} <span style="font-size:0.75rem;background:#1d4ed8;border-radius:4px;padding:1px 6px">${d.levelName||d.level}</span></div>
+    <div style="font-size:0.78rem;color:#93c5fd;margin-bottom:10px">🕐 ${d.timeRange}</div>
+    <div style="display:flex;gap:6px">
+      <button onclick="approveJoin('${doc.id}','${d.name}','${d.level}','${d.timeRange}')" style="flex:1;background:#16a34a;border:none;border-radius:7px;padding:7px;color:#fff;font-size:0.85rem;font-weight:700;cursor:pointer">✅ 同意</button>
+      <button onclick="rejectJoin('${doc.id}')" style="flex:1;background:#7f1d1d;border:none;border-radius:7px;padding:7px;color:#fca5a5;font-size:0.85rem;font-weight:700;cursor:pointer">❌ 拒絕</button>
+    </div>`;
+  stack.appendChild(card);
+}
+
+function approveJoin(docId, name, level, timeRange){
+  if(players.find(p=>p.name===name)){
+    alert(`「${name}」已在名單中`);
+    rejectJoin(docId); return;
+  }
+  if(!isPro() && players.length >= 16){ showUpgradeHint('免費版最多 16 位球員'); return; }
+  players.push({id:nid++, name, level, status:'waiting', offTime:null, playCount:0, partnerHistory:[], availableTime:timeRange});
+  db.collection('joinRequests').doc(docId).update({status:'approved'}).catch(()=>{});
+  const card = document.getElementById('jreq-'+docId);
+  if(card) card.remove();
+  render(); syncSession(true);
+}
+
+function rejectJoin(docId){
+  db.collection('joinRequests').doc(docId).update({status:'rejected'}).catch(()=>{});
+  const card = document.getElementById('jreq-'+docId);
+  if(card) card.remove();
+}
+
+function showJoinQR(){
+  if(!currentUser){ alert('請先登入'); return; }
+  var url = location.origin + location.pathname + '?join=' + currentUser.uid;
+  document.getElementById('join-qr-url').textContent = url;
+  document.getElementById('join-qr-container').innerHTML = '';
+  try { new QRCode(document.getElementById('join-qr-container'), {text:url, width:200, height:200, colorDark:'#000', colorLight:'#fff'}); }
+  catch(e){ document.getElementById('join-qr-container').textContent = url; }
+  document.getElementById('modal-join-qr').style.display = 'flex';
+}
+
+function copyJoinUrl(){
+  var url = document.getElementById('join-qr-url').textContent;
+  navigator.clipboard.writeText(url).then(()=>alert('✅ 連結已複製！')).catch(()=>prompt('複製此連結：',url));
+}
+
 async function forceSyncSession(){
   if(!currentUser){ alert('請先登入'); return; }
   var sessionData = {
@@ -1178,6 +1344,8 @@ function confirmSetup(){
   scoreMode = document.getElementById('setup-score-mode').checked;
   document.getElementById('modal-setup').style.display = 'none';
   render();
+  syncSession(true);
+  startAutoSync();
 }
 
 function openSetupModal(){
@@ -2340,6 +2508,7 @@ function renderPlayers(){
         </div>
         <div class="p-item-bot">
           ${statusHtml}
+          ${p.availableTime?`<span style="font-size:0.58rem;color:#93c5fd;background:#1e3a5f;border-radius:4px;padding:1px 5px;margin-left:2px">🕐${p.availableTime}</span>`:''}
         </div>
         <div class="p-item-actions">
           ${partnerName?`<span style="font-size:0.65rem;color:var(--pur);flex:1;text-align:left">綁 ${partnerName}</span>`:''}
@@ -2697,7 +2866,9 @@ if(!isViewerMode){
         document.getElementById('modal-setup').style.display = 'flex';
       } else {
         render();
-        syncSession(true); // 立即同步一次，確保 viewer 能看到最新狀態
+        syncSession(true);
+        startAutoSync();
+        startJoinListener();
       }
     } else {
       currentUser = null;
