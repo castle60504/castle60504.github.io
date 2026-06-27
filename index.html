@@ -368,10 +368,10 @@ header h1{font-size:1.2rem;font-weight:800;}
 
   /* Courts area: fills space, horizontal snap scroll */
   .courts-area{
-    flex:1;min-height:0;
+    flex:none;
     padding:6px 8px;gap:8px;
-    overflow-x:scroll;overflow-y:hidden;
-    display:flex;flex-direction:row;align-items:stretch;
+    overflow-x:scroll;overflow-y:visible;
+    display:flex;flex-direction:row;align-items:flex-start;
     -webkit-overflow-scrolling:touch;
     scroll-snap-type:x mandatory;
     scroll-behavior:smooth;
@@ -382,6 +382,8 @@ header h1{font-size:1.2rem;font-weight:800;}
     min-width:calc(100vw - 32px);flex:0 0 calc(100vw - 32px);
     scroll-snap-align:start;
     display:flex;flex-direction:column;
+    height:fit-content !important;
+    align-self:flex-start !important;
   }
 
   /* Fixed bottom queue panel */
@@ -399,8 +401,12 @@ header h1{font-size:1.2rem;font-weight:800;}
   .p-item{width:calc(50% - 4px);}
 
   /* 字體放大 */
-  .slot-player-name{font-size:1.35rem !important;font-weight:700;}
+  .slot-player-name{font-size:1.1rem !important;font-weight:700;}
   .mn{width:28px !important;height:28px !important;font-size:0.72rem !important;}
+  .slot-box{min-height:38px !important;padding:4px !important;}
+  .court-body{padding:4px 8px !important;justify-content:flex-start !important;}
+  .court-grid{padding:3px 5px !important;gap:4px !important;}
+  .court-card-title{padding:3px 0 1px !important;}
   .p-item-top span[style]{font-size:1rem !important;}
   .p-item{padding:10px 11px;}
   .court-card-title{font-size:1.3rem !important;}
