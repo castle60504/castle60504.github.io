@@ -366,25 +366,28 @@ header h1{font-size:1.2rem;font-weight:800;}
     flex-shrink:0;
   }
 
-  /* Courts area: horizontal snap scroll */
+  /* Courts area: transform-based single-court view */
   .courts-area{
     flex:none;
-    padding:6px 8px;gap:8px;
-    overflow-x:scroll;overflow-y:hidden;
-    height:auto;
-    display:flex;flex-direction:row;align-items:flex-start;
-    -webkit-overflow-scrolling:touch;
-    scroll-snap-type:x mandatory;
-    scroll-behavior:smooth;
-    overscroll-behavior:contain;
-    touch-action:pan-x;
+    overflow:hidden;
+    width:100%;
+    touch-action:pan-y;
+  }
+  .courts-inner{
+    display:flex;
+    flex-direction:row;
+    transition:transform 0.3s ease;
+    will-change:transform;
+    align-items:flex-start;
   }
   .court-card{
-    min-width:calc(100vw - 32px);flex:0 0 calc(100vw - 32px);
-    scroll-snap-align:start;
+    flex:0 0 100vw;
+    width:100vw;
+    padding:0 16px;
     display:flex;flex-direction:column;
     height:fit-content !important;
     align-self:flex-start !important;
+    box-sizing:border-box;
   }
 
   /* Queue panel — natural height, no cap */
@@ -489,7 +492,7 @@ header h1{font-size:1.2rem;font-weight:800;}
     <!-- RIGHT: courts + player queue -->
     <div class="right-panel">
       <div id="court-tabs"></div>
-      <div class="courts-area" id="courts-area"></div>
+      <div class="courts-area" id="courts-area"><div class="courts-inner" id="courts-inner"></div></div>
       <div class="queue-area">
         <div class="queue-hdr" onclick="toggleQueuePanel()">
           <span class="queue-title">⏳ 候場名單</span>
@@ -919,6 +922,19 @@ if(isViewerMode){
       var s = data.session;
       courts = s.courts || [];
       players = s.players || [];
+      // 清除 slots 裡已不存在的球員 ID（避免主辦刪人後閃爍）
+      var validIds = new Set(players.map(function(p){return p.id;}));
+      courts.forEach(function(c){
+        c.playerSlots = (c.playerSlots||[null,null,null,null]).map(function(id){return validIds.has(id)?id:null;});
+        c.nextSlots = (c.nextSlots||[null,null,null,null]).map(function(id){return validIds.has(id)?id:null;});
+      });
+      // 若自己被刪，清除身份
+      if(_myPlayerName && !players.some(function(p){return p.name===_myPlayerName;})){
+        _myPlayerName = null; _lastCourtNotified = null;
+        localStorage.removeItem('viewer-my-name');
+        document.getElementById('viewer-my-bar').style.display='none';
+        _viewerNameChosen = false;
+      }
       // 還原或提示選名字
       if(!_viewerNameChosen){
         var saved = localStorage.getItem('viewer-my-name');
@@ -1051,6 +1067,16 @@ function switchJoinToViewer(){
     var s = doc.data().session;
     courts = s.courts || [];
     players = s.players || [];
+    // 清除 slots 裡已不存在的球員 ID
+    var validIds2 = new Set(players.map(function(p){return p.id;}));
+    courts.forEach(function(c){
+      c.playerSlots = (c.playerSlots||[null,null,null,null]).map(function(id){return validIds2.has(id)?id:null;});
+      c.nextSlots = (c.nextSlots||[null,null,null,null]).map(function(id){return validIds2.has(id)?id:null;});
+    });
+    // 若自己被刪，清除身份
+    if(_myPlayerName && !players.some(function(p){return p.name===_myPlayerName;})){
+      _myPlayerName = null; _lastCourtNotified = null;
+    }
     renderViewerUI(doc.data().session.updatedAt);
     checkMyCourtNotify();
   }, function(err){ statusEl.textContent='❌ 連線失敗'; });
@@ -2783,7 +2809,14 @@ function renderPlayers(){
 function renderCourts(){
   const area=document.getElementById('courts-area');
   const tabBar=document.getElementById('court-tabs');
-  area.innerHTML='';
+  // 手機用 courts-inner，桌面直接用 courts-area
+  const isMob = isMobile();
+  if(isMob){
+    area.innerHTML='<div class="courts-inner" id="courts-inner"></div>';
+  } else {
+    area.innerHTML='';
+  }
+  const cardContainer = isMob ? document.getElementById('courts-inner') : area;
   tabBar.innerHTML='';
 
   courts.forEach(c=>{
@@ -2875,16 +2908,13 @@ function renderCourts(){
         ${!isEmpty?`<button class="cb" style="background:#7c3aed;color:#fff" onclick="callCourt(${c.id})">叫號</button>`:''}
       </div>
     `;
-    area.appendChild(card);
+    cardContainer.appendChild(card);
 
     // Tab
     const tab=document.createElement('button');
     tab.className='court-tab'+(isPlay?' active':'');
     tab.textContent=`${courtLabel(c)}`;
-    tab.onclick=()=>{
-      const cardEl=document.getElementById(`court-card-${c.id}`);
-      if(cardEl) cardEl.scrollIntoView({behavior:'smooth',block:'nearest',inline:'start'});
-    };
+    tab.onclick=(()=>{ const ci=courts.indexOf(c); return ()=>{ if(isMobile()) _setCourtTransform(ci,true); else { const cardEl=document.getElementById('court-card-'+c.id); if(cardEl) cardEl.scrollIntoView({behavior:'smooth',block:'nearest',inline:'start'}); } }; })();
     tabBar.appendChild(tab);
   });
 
@@ -2920,6 +2950,11 @@ function renderCourts(){
       const card = document.getElementById(`court-card-${c.id}`);
       if(card) observer.observe(card);
     });
+  }
+  // 手機：render 後定位到正確場地
+  if(isMobile()){
+    var safeIdx = Math.max(0, Math.min(_mobileCourtIdx, courts.length-1));
+    setTimeout(function(){ _setCourtTransform(safeIdx, false); }, 0);
   }
 }
 
@@ -3131,59 +3166,61 @@ function toggleQueuePanel(){
   if(arrow){ arrow.style.transform = _queueOpen ? '' : 'rotate(180deg)'; }
 }
 
-// ── 手機橫滑場地 ──────────────────────────────────
+// ── 手機橫滑場地（transform版，不影響頁面縱向捲動）──
+var _mobileCourtIdx = 0;
+function _getInner(){ return document.getElementById('courts-inner'); }
+function _setCourtTransform(idx, animated){
+  var inner = _getInner();
+  if(!inner) return;
+  if(animated) inner.style.transition = 'transform 0.3s ease';
+  else inner.style.transition = 'none';
+  inner.style.transform = 'translateX(-' + (idx * 100) + 'vw)';
+  _mobileCourtIdx = idx;
+  // 更新 tab 高亮
+  var tabs = document.querySelectorAll('.court-tab');
+  tabs.forEach(function(t,i){ t.classList.toggle('viewing', i===idx); });
+}
+
 (function(){
-  const area = document.getElementById('courts-area');
+  var area = document.getElementById('courts-area');
   if(!area) return;
-  let startX, startY, startScroll, tracking=false, lastX, lastT, velX=0;
+  var startX, startY, startDx=0, tracking=false, lastX, lastT, velX=0;
 
-  function cardWidth(){
-    const card = area.querySelector('.court-card');
-    return card ? card.offsetWidth + 8 : area.offsetWidth;
-  }
-  function snapTo(idx){
-    area.scrollTo({left: idx * cardWidth(), behavior:'smooth'});
-  }
-  function currentIdx(){
-    return Math.round(area.scrollLeft / cardWidth());
-  }
-
-  area.addEventListener('touchstart', e=>{
+  area.addEventListener('touchstart', function(e){
+    if(!isMobile()) return;
     startX = lastX = e.touches[0].clientX;
     startY = e.touches[0].clientY;
-    startScroll = area.scrollLeft;
-    lastT = Date.now(); velX = 0; tracking = true;
+    startDx = 0; velX = 0; tracking = true;
+    var inner = _getInner();
+    if(inner) inner.style.transition = 'none';
   }, {passive: true});
 
-  area.addEventListener('touchmove', e=>{
-    if(!tracking) return;
-    const dx = e.touches[0].clientX - startX;
-    const dy = e.touches[0].clientY - startY;
-    // 橫向滑動：攔截，只讓場地區域動
+  area.addEventListener('touchmove', function(e){
+    if(!tracking || !isMobile()) return;
+    var dx = e.touches[0].clientX - startX;
+    var dy = e.touches[0].clientY - startY;
     if(Math.abs(dx) > Math.abs(dy) + 5){
       e.preventDefault();
-      e.stopPropagation();
-      const now = Date.now();
+      var now = Date.now();
       velX = (e.touches[0].clientX - lastX) / Math.max(now - lastT, 1);
-      lastX = e.touches[0].clientX; lastT = now;
-      area.scrollLeft = startScroll - dx;
+      lastX = e.touches[0].clientX; lastT = now; startDx = dx;
+      var inner = _getInner();
+      if(inner) inner.style.transform = 'translateX(calc(-' + (_mobileCourtIdx*100) + 'vw + ' + dx + 'px))';
     } else {
-      // 縱向滑動：停止追蹤，讓頁面正常捲動
       tracking = false;
     }
   }, {passive: false});
 
-  area.addEventListener('touchend', e=>{
-    if(!tracking) return;
+  area.addEventListener('touchend', function(e){
+    if(!tracking || !isMobile()) return;
     tracking = false;
-    const dx = startX - e.changedTouches[0].clientX;
-    const n = courts.length;
-    const cur = currentIdx();
-    if(Math.abs(dx) > 20 || Math.abs(velX) > 0.3){
-      snapTo(Math.max(0, Math.min(n-1, cur + (dx>0?1:-1))));
-    } else {
-      snapTo(cur);
+    var dx = startX - e.changedTouches[0].clientX;
+    var n = courts.length;
+    var newIdx = _mobileCourtIdx;
+    if(Math.abs(dx) > 40 || Math.abs(velX) > 0.3){
+      newIdx = Math.max(0, Math.min(n-1, _mobileCourtIdx + (dx>0?1:-1)));
     }
+    _setCourtTransform(newIdx, true);
   }, {passive: true});
 })();
 
