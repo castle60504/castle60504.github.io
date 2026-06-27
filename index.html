@@ -1099,9 +1099,17 @@ function closeSetupModal(){
   document.getElementById('modal-setup').style.display = 'none';
 }
 
-// Level system: 5 levels
+// Level system: 5 levels (舊 1-18 自動對應新 1-5)
 const TIER_RANGES=[[1,1],[2,2],[3,3],[4,4],[5,5]];
-function LVL(level){ return parseInt(level)||1; }
+function LVL(level){
+  const n=parseInt(level)||1;
+  // 舊 1-18 → 新 1-5
+  if(n<=3) return 1;
+  if(n<=5) return 2;
+  if(n<=9) return 3;
+  if(n<=12) return 4;
+  return 5;
+}
 function tierOf(level){
   const n=LVL(level);
   return TIER_RANGES.findIndex(([lo,hi])=>n>=lo&&n<=hi);
