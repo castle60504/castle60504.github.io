@@ -439,8 +439,6 @@ header h1{font-size:1.2rem;font-weight:800;}
   <div class="hdr-stats">
     <div class="hstat"><span class="hsv" id="s-total">0</span><span class="hsl">球員</span></div>
     <div class="hstat"><span class="hsv" id="s-play">0</span><span class="hsl">上場</span></div>
-    <div class="hstat"><span class="hsv" id="s-wait">0</span><span class="hsl">候場</span></div>
-    <div class="hstat"><span class="hsv" id="s-cool">0</span><span class="hsl">休息</span></div>
     <div class="hstat"><span class="hsv" id="s-courts">0/3</span><span class="hsl">場地</span></div>
   </div>
   <div class="hdr-right">
@@ -853,10 +851,6 @@ function confirmSetup(){
   courts = newCourts;
   namingStyle = setupNamingType;
   scoreMode = document.getElementById('setup-score-mode').checked;
-  // 費用
-  feeCourtPerHour = parseFloat(document.getElementById('setup-fee-court').value)||0;
-  feeBalls        = parseFloat(document.getElementById('setup-fee-balls').value)||0;
-  feeStartTime    = parseFloat(document.getElementById('setup-fee-hours').value)||0; // 存小時數
   document.getElementById('modal-setup').style.display = 'none';
   render();
 }
@@ -864,9 +858,6 @@ function confirmSetup(){
 function openSetupModal(){
   document.getElementById('setup-cancel-btn').style.display = courts.length > 0 ? 'block' : 'none';
   document.getElementById('setup-score-mode').checked = scoreMode;
-  if(feeCourtPerHour) document.getElementById('setup-fee-court').value = feeCourtPerHour;
-  if(feeBalls)        document.getElementById('setup-fee-balls').value  = feeBalls;
-  if(feeStartTime)    document.getElementById('setup-fee-hours').value  = feeStartTime;
   updateSetupNamingUI();
   document.getElementById('modal-setup').style.display = 'flex';
 }
@@ -2240,6 +2231,12 @@ function manualCheckUpdate(){
   }
   checkVersion();
   setInterval(checkVersion, 30000);
+
+  // 每秒更新休息計時
+  setInterval(function(){
+    const hasCooling = players.some(p => p.status === 'cooling' || (p.offTime && p.status === 'waiting'));
+    if(hasCooling) renderPlayers();
+  }, 1000);
 })();
 
 function openHelpModal(){ document.getElementById('modal-help').style.display='flex'; }
