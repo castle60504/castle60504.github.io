@@ -577,7 +577,7 @@ header h1{font-size:1.2rem;font-weight:800;}
     <h3>✏️ 編輯球員庫</h3>
     <div class="row">
       <input id="roster-edit-name" type="text" placeholder="暱稱" maxlength="8" style="flex:2" autocomplete="off" autocorrect="off" autocapitalize="off">
-      <select id="roster-edit-lvl" style="flex:1.4">
+      <select id="roster-edit-lvl" style="flex:1.4" onchange="_editLvl=this.value">
         <option value="1">新手</option><option value="2">初階</option><option value="3">中階</option><option value="4">中高</option><option value="5">高階</option>
       </select>
     </div>
@@ -1312,18 +1312,19 @@ function addRosterEntry(){
 }
 
 let editingRosterId = null;
+let _editLvl = ''; // iOS Safari 相容：用 onchange 儲存等級
 
 function openRosterEditModal(rid){
   const r = roster.find(r=>r.id===rid);
   if(!r) return;
   editingRosterId = rid;
   document.getElementById('roster-edit-name').value = r.name;
-  // 設定等級（相容 iOS Safari）
+  // 動態重建選項並設定 _editLvl（相容 iOS Safari）
   const editSel = document.getElementById('roster-edit-lvl');
   const targetLvl = String(LVL(r.level));
-  for(let i=0;i<editSel.options.length;i++){
-    editSel.options[i].selected = (editSel.options[i].value === targetLvl);
-  }
+  const lvlOpts = [{v:'1',n:'新手'},{v:'2',n:'初階'},{v:'3',n:'中階'},{v:'4',n:'中高'},{v:'5',n:'高階'}];
+  editSel.innerHTML = lvlOpts.map(l=>`<option value="${l.v}"${l.v===targetLvl?' selected':''}>${l.n}</option>`).join('');
+  _editLvl = targetLvl; // 初始值
   document.getElementById('modal-roster-edit').classList.add('open');
   setTimeout(()=>document.getElementById('roster-edit-name').focus(), 100);
 }
@@ -1342,7 +1343,7 @@ function saveRosterEdit(){
   if(!name){ nameEl.focus(); return; }
   const duplicate = roster.find(rx=>rx.name===name && rx.id!==editingRosterId);
   if(duplicate){ alert(`「${name}」已在球員庫中`); return; }
-  const newLvl = document.getElementById('roster-edit-lvl').value;
+  const newLvl = _editLvl || document.getElementById('roster-edit-lvl').value;
   if(!newLvl){ alert('請選擇等級'); return; }
   const oldName = r.name;
   r.name = name;
