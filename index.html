@@ -201,7 +201,7 @@ header h1{font-size:1.2rem;font-weight:800;}
 .player-box{flex:1;background:var(--sur);border-radius:8px;padding:6px 7px;display:flex;align-items:center;gap:5px;min-width:0;}
 .player-box.A{border:1px solid #be185d33;}
 .player-box.B{border:1px solid #06574633;}
-.mn{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.58rem;font-weight:900;flex-shrink:0;}
+.mn{min-width:28px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.55rem;font-weight:900;flex-shrink:0;padding:0 3px;}
 .tn{font-size:0.78rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .pair-icon{font-size:0.6rem;color:var(--pur);flex-shrink:0;}
 /* legacy - keep for queue/modal use */
@@ -400,7 +400,7 @@ header h1{font-size:1.2rem;font-weight:800;}
 
   /* 字體放大 */
   .slot-player-name{font-size:1.35rem !important;font-weight:700;}
-  .mn{width:26px !important;height:26px !important;font-size:0.75rem !important;}
+  .mn{min-width:32px !important;height:24px !important;font-size:0.68rem !important;}
   .p-item-top span[style]{font-size:1rem !important;}
   .p-item{padding:10px 11px;}
   .court-card-title{font-size:1.3rem !important;}
@@ -453,8 +453,8 @@ header h1{font-size:1.2rem;font-weight:800;}
     <button class="btn-pair-cfg" onclick="openPairModal()">💜 固定搭檔</button>
     <button class="btn-pair-cfg" style="background:#7c3aed" onclick="callAllCourts()">📢 全場叫號</button>
     <button class="btn-pair-cfg" style="background:#0e7490" onclick="openStatsModal()">📊 戰績紀錄</button>
-    <button class="btn-pair-cfg" style="background:#7f1d1d" onclick="resetSession()">🔄 重置</button>
-    <button class="btn-pair-cfg" style="background:var(--cyn)" onclick="openSetupModal()">⚙️ 比賽設定</button>
+    <button class="btn-pair-cfg" style="background:var(--cyn)" onclick="openSetupModal()">⚙️ 初始設定</button>
+    <button class="btn-pair-cfg" style="background:#7f1d1d" onclick="resetSession()">🔄 清除</button>
     <button class="btn-update" id="btn-update" onclick="manualCheckUpdate()">🔄 更新</button>
     <button class="btn-update" onclick="showQRCode()" style="background:#0f4c75;border-color:#1a6fa8;color:#7dd3fc">📱 QR碼</button>
     <button class="btn-update" onclick="openHelpModal()" style="background:#1e3a5f;border-color:#3b82f6;color:#93c5fd">❓ 說明</button>
@@ -1426,7 +1426,7 @@ function renderLeft(){
         const avgCnt=players.length?players.reduce((s,p)=>s+(p.playCount||0),0)/Math.max(1,players.length):0;
         const cntColor=rCnt>0&&rCnt>=avgCnt+2?'#f87171':rCnt>0?'#60a5fa':'var(--mut)';
         row.innerHTML=`
-          <div class="mn ${LCLS(r.level)}" style="width:24px;height:24px;font-size:0.62rem;font-weight:900;flex-shrink:0">${r.level}</div>
+          <div class="mn ${LCLS(r.level)}" style="height:22px;font-size:0.6rem;font-weight:900;flex-shrink:0">${tierName(r.level)}</div>
           <span class="roster-name">${r.name}${r.fixed?'<span style="font-size:0.55rem;color:var(--pur);margin-left:3px">★</span>':''}</span>
           <button class="btn-roster-edit" onclick="openRosterEditModal(${r.id})" title="編輯">✏️</button>
           <button class="btn-roster-add" onclick="addFromRoster(${r.id})" title="加入本場">＋</button>
@@ -1454,8 +1454,8 @@ function renderLeft(){
       const row=document.createElement('div');
       row.className='pair-roster-row';
       row.innerHTML=`
-        <div class="mn ${LCLS(p1.level)}" style="width:18px;height:18px;font-size:0.55rem;font-weight:900;flex-shrink:0">${p1.level}</div>
-        <div class="mn ${LCLS(p2.level)}" style="width:18px;height:18px;font-size:0.55rem;font-weight:900;flex-shrink:0;margin-left:2px">${p2.level}</div>
+        <div class="mn ${LCLS(p1.level)}" style="height:18px;font-size:0.52rem;font-weight:900;flex-shrink:0">${tierName(p1.level)}</div>
+        <div class="mn ${LCLS(p2.level)}" style="height:18px;font-size:0.52rem;font-weight:900;flex-shrink:0;margin-left:2px">${tierName(p2.level)}</div>
         <span class="pair-roster-names">${p1.name} 💜 ${p2.name}</span>
       `;
       sec.appendChild(row);
@@ -1935,10 +1935,10 @@ function renderPairModal(){
       const div=document.createElement('div');
       div.className='pair-item';
       div.innerHTML=`
-        <div class="mn ${LCLS(p1.level)}" style="width:22px;height:22px;font-size:0.62rem">${p1.level}</div>
+        <div class="mn ${LCLS(p1.level)}" style="height:22px;font-size:0.6rem">${tierName(p1.level)}</div>
         <span>${p1.name}</span>
         <span style="color:var(--pur);font-weight:700">💜</span>
-        <div class="mn ${LCLS(p2.level)}" style="width:22px;height:22px;font-size:0.62rem">${p2.level}</div>
+        <div class="mn ${LCLS(p2.level)}" style="height:22px;font-size:0.6rem">${tierName(p2.level)}</div>
         <span>${p2.name}</span>
         <button class="pair-rm" onclick="removeFixedPair(${i})">✕</button>
       `;
@@ -1952,7 +1952,7 @@ function renderPairModal(){
     sel.innerHTML='<option value="">選球員'+(idx+1)+'</option>';
     players.sort((a,b)=>LVL(a.level)-LVL(b.level)).forEach(p=>{
       const opt=document.createElement('option');
-      opt.value=p.id;opt.textContent=`${p.name} (${p.level}級 ${tierName(p.level)})`;
+      opt.value=p.id;opt.textContent=`${p.name} (${tierName(p.level)})`;
       if(parseInt(prev)===p.id) opt.selected=true;
       sel.appendChild(opt);
     });
@@ -2204,7 +2204,7 @@ function renderPlayers(){
       div.onclick=(e)=>{ if(e.target.closest('button')) return; if(!isPlay) selectPlayer(p.id); };
       div.innerHTML=`
         <div class="p-item-top">
-          <div class="mn ${LCLS(p.level)}" title="${tierName(p.level)}">${p.level}</div>
+          <div class="mn ${LCLS(p.level)}">${tierName(p.level)}</div>
           <span style="font-size:0.84rem;font-weight:700;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</span>
           <span style="font-size:0.7rem;font-weight:800;color:#60a5fa;flex-shrink:0">${cnt}場</span>
         </div>
@@ -2262,7 +2262,7 @@ function renderCourts(){
         const isFP=hasPair(pid);
         return `<div class="slot-box filled team${t}${!isPlay?' slot-pickable':''}" ${!isPlay?`onclick="placeInSlot(${c.id},${pos})" title="點擊拿起球員"`:''}>
           <div style="display:flex;align-items:center;gap:4px;pointer-events:none">
-            <div class="mn ${LCLS(p.level)}">${p.level}</div>
+            <div class="mn ${LCLS(p.level)}">${tierName(p.level)}</div>
             <span class="slot-player-name">${p.name}${isFP?' 💜':''}</span>
           </div>
         </div>`;
@@ -2282,7 +2282,7 @@ function renderCourts(){
         const p=players.find(pl=>pl.id===pid);
         const nm=p?p.name:'?';
         const lvlCls=p?LCLS(p.level):'lt1';
-        const lvlTxt=p?p.level:'?';
+        const lvlTxt=p?tierName(p.level):'?';
         return `<div class="staging-slot filled team${t} slot-pickable" onclick="placeInSlot(${c.id},${pos},true)" title="點擊拿起球員" style="cursor:grab">
           <div class="mn ${lvlCls}" style="font-size:0.55rem;width:18px;height:18px;pointer-events:none">${lvlTxt}</div>
           <span class="staging-slot-name" style="pointer-events:none">${nm}</span>
