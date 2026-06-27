@@ -393,7 +393,7 @@ header h1{font-size:1.2rem;font-weight:800;}
   .p-item{width:calc(50% - 4px);}
 
   /* 字體放大 */
-  .slot-player-name{font-size:1.05rem !important;font-weight:700;}
+  .slot-player-name{font-size:1.2rem !important;font-weight:700;}
   .mn{width:26px !important;height:26px !important;font-size:0.75rem !important;}
   .p-item-top span[style]{font-size:1rem !important;}
   .p-item{padding:10px 11px;}
@@ -452,6 +452,7 @@ header h1{font-size:1.2rem;font-weight:800;}
     <button class="btn-pair-cfg" style="background:#7f1d1d" onclick="resetSession()">🔄 重置</button>
     <button class="btn-pair-cfg" style="background:var(--cyn)" onclick="openSetupModal()">⚙️ 比賽設定</button>
     <button class="btn-update" id="btn-update" onclick="manualCheckUpdate()">🔄 更新</button>
+    <button class="btn-update" onclick="openHelpModal()" style="background:#1e3a5f;border-color:#3b82f6;color:#93c5fd">❓ 說明</button>
   </div>
 </header>
 
@@ -628,25 +629,6 @@ header h1{font-size:1.2rem;font-weight:800;}
         </div>
       </label>
     </div>
-    <!-- 費用分攤 -->
-    <div style="margin-bottom:18px;text-align:left;background:var(--sur2);border-radius:10px;padding:12px 16px;border:1px solid var(--bdr)">
-      <div style="font-size:0.78rem;color:var(--mut);font-weight:700;letter-spacing:.05em;margin-bottom:10px">💰 費用分攤</div>
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-        <span style="font-size:0.78rem;color:var(--txt2);white-space:nowrap">場地費/時/場</span>
-        <input type="number" id="setup-fee-court" min="0" placeholder="0" style="flex:1;background:var(--bg);border:1px solid var(--bdr);border-radius:6px;color:var(--txt);padding:5px 8px;font-size:0.8rem;outline:none">
-        <span style="font-size:0.75rem;color:var(--mut)">元</span>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-        <span style="font-size:0.78rem;color:var(--txt2);white-space:nowrap">打了幾小時</span>
-        <input type="number" id="setup-fee-hours" min="0" step="0.5" placeholder="0" style="flex:1;background:var(--bg);border:1px solid var(--bdr);border-radius:6px;color:var(--txt);padding:5px 8px;font-size:0.8rem;outline:none">
-        <span style="font-size:0.75rem;color:var(--mut)">小時</span>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <span style="font-size:0.78rem;color:var(--txt2);white-space:nowrap">用球費（總計）</span>
-        <input type="number" id="setup-fee-balls" min="0" placeholder="0" style="flex:1;background:var(--bg);border:1px solid var(--bdr);border-radius:6px;color:var(--txt);padding:5px 8px;font-size:0.8rem;outline:none">
-        <span style="font-size:0.75rem;color:var(--mut)">元</span>
-      </div>
-    </div>
     <button class="mbtn mok" style="width:100%;padding:11px;font-size:0.9rem" onclick="confirmSetup()">▶ 套用比賽設定</button>
     <button id="setup-cancel-btn" class="mbtn mcancel" style="width:100%;padding:8px;font-size:0.85rem;display:none;margin-top:6px" onclick="closeSetupModal()">取消</button>
   </div>
@@ -659,6 +641,49 @@ header h1{font-size:1.2rem;font-weight:800;}
     <div id="stats-subtitle" style="font-size:0.72rem;color:var(--mut);margin-bottom:14px"></div>
     <div id="stats-body" style="flex:1;overflow-y:auto;min-height:0"></div>
     <button class="mbtn mcancel" style="width:100%;margin-top:12px" onclick="document.getElementById('modal-stats').style.display='none'">關閉</button>
+  </div>
+</div>
+
+<!-- Help Modal -->
+<div class="overlay" id="modal-help" onclick="if(event.target.id==='modal-help')closeHelpModal()" style="display:none">
+  <div class="modal" style="width:360px;max-height:85vh;display:flex;flex-direction:column">
+    <h3 style="margin-bottom:14px">❓ 使用說明</h3>
+    <div style="flex:1;overflow-y:auto;min-height:0;font-size:0.85rem;line-height:1.7;color:var(--txt2)">
+
+      <div style="color:#60a5fa;font-weight:700;margin-bottom:4px">📋 球員庫</div>
+      <div style="margin-bottom:12px">所有球員的名單。點 <b style="color:var(--txt)">＋</b> 加入本場候場，點 <b style="color:var(--txt)">✏️</b> 編輯等級。</div>
+
+      <div style="color:#60a5fa;font-weight:700;margin-bottom:4px">➕ 加球員</div>
+      <div style="margin-bottom:12px">新增今天來打球的球員，輸入名字和等級後加入候場名單。</div>
+
+      <div style="color:#60a5fa;font-weight:700;margin-bottom:4px">💜 固定搭檔</div>
+      <div style="margin-bottom:12px">設定兩位球員為固定搭檔，自動排場時會優先排在同一隊。</div>
+
+      <div style="color:#60a5fa;font-weight:700;margin-bottom:4px">📢 全場叫號</div>
+      <div style="margin-bottom:12px">語音廣播目前所有場地上場球員的名字。</div>
+
+      <div style="color:#60a5fa;font-weight:700;margin-bottom:4px">📊 戰績紀錄</div>
+      <div style="margin-bottom:12px">查看今天所有已完成的比賽紀錄（需在比賽設定開啟計分模式）。</div>
+
+      <div style="color:#60a5fa;font-weight:700;margin-bottom:4px">🔄 重置</div>
+      <div style="margin-bottom:12px">清空所有場地和出賽紀錄，重新開始一場新活動。球員庫名單保留。</div>
+
+      <div style="color:#60a5fa;font-weight:700;margin-bottom:4px">⚙️ 比賽設定</div>
+      <div style="margin-bottom:12px">設定今天場地數量、場地命名方式（數字/字母/自訂）、是否開啟計分模式。</div>
+
+      <div style="color:#60a5fa;font-weight:700;margin-bottom:4px">🔄 更新</div>
+      <div style="margin-bottom:16px">檢查是否有新版本。按鈕變綠色時代表有更新，點一下即可重新載入。</div>
+
+      <div style="border-top:1px solid var(--bdr);padding-top:12px;color:#60a5fa;font-weight:700;margin-bottom:4px">⚔️ 場地操作</div>
+      <div style="margin-bottom:6px"><b style="color:var(--txt)">▶ 開始</b> — 4位球員就位後按開始，正式開始比賽。</div>
+      <div style="margin-bottom:6px"><b style="color:var(--txt)">⬇ 下場</b> — 比賽結束，球員離場，進入休息冷卻。</div>
+      <div style="margin-bottom:12px"><b style="color:var(--txt)">⚡ 自動</b> — 系統自動從候場名單挑選最適合的球員填入下一場。</div>
+
+      <div style="border-top:1px solid var(--bdr);padding-top:12px;color:#60a5fa;font-weight:700;margin-bottom:4px">👆 候場名單操作</div>
+      <div style="margin-bottom:6px">點選球員卡片 → 再點場地空位，即可手動指定球員上場位置。</div>
+      <div>球員卡片右上角的場數為今天已上場次數，紅色代表場數明顯多於平均。</div>
+    </div>
+    <button class="mbtn mcancel" style="width:100%;margin-top:12px" onclick="closeHelpModal()">關閉</button>
   </div>
 </div>
 
@@ -1967,12 +1992,12 @@ function renderPlayers(){
           <div class="mn ${LCLS(p.level)}" title="${tierName(p.level)}">${p.level}</div>
           <span style="font-size:0.84rem;font-weight:700;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</span>
           <span style="font-size:0.7rem;font-weight:800;color:#60a5fa;flex-shrink:0">${cnt}場</span>
-          ${partnerName?`<span style="font-size:0.6rem;color:var(--pur)">💜</span>`:''}
         </div>
         <div class="p-item-bot">
           ${statusHtml}
         </div>
         <div class="p-item-actions">
+          ${partnerName?`<span style="font-size:0.65rem;color:var(--pur);flex:1;text-align:left">綁 ${partnerName}</span>`:''}
           <button class="btn-rm" onclick="event.stopPropagation();removePlayer(${p.id})" style="font-size:0.7rem">✕</button>
         </div>
       `;
@@ -2216,6 +2241,9 @@ function manualCheckUpdate(){
   checkVersion();
   setInterval(checkVersion, 30000);
 })();
+
+function openHelpModal(){ document.getElementById('modal-help').style.display='flex'; }
+function closeHelpModal(){ document.getElementById('modal-help').style.display='none'; }
 
 function openStatsModal(){
   const modal = document.getElementById('modal-stats');
