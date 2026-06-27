@@ -339,22 +339,22 @@ header h1{font-size:1.2rem;font-weight:800;}
   .btn-roster-toggle{display:inline-flex;align-items:center;gap:5px;}
   .hdr-stats{display:none;}
 
-  /* Fixed full-screen layout */
-  body{height:100dvh;overflow:hidden;padding-top:env(safe-area-inset-top);}
-  .layout{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+  /* Scrollable layout for mobile */
+  body{height:auto;overflow:auto;padding-top:env(safe-area-inset-top);}
+  .layout{flex:1;overflow:visible;display:flex;flex-direction:column;}
 
   /* Left panel slide-in drawer */
-  .main-area{grid-template-columns:1fr;flex:1;overflow:hidden;}
+  .main-area{grid-template-columns:1fr;flex:1;overflow:visible;}
   .left-panel{
     position:fixed;left:-240px;top:env(safe-area-inset-top, 0px);bottom:0;width:240px;
     z-index:495;transition:left .25s ease;box-shadow:4px 0 24px rgba(0,0,0,.5);
   }
   .left-panel.mobile-open{left:0;}
 
-  /* Right panel fills remaining height */
+  /* Right panel natural height */
   .right-panel{
     display:flex;flex-direction:column;
-    height:100%;overflow:hidden;
+    height:auto;overflow:visible;
   }
 
   /* Court tabs */
@@ -371,6 +371,7 @@ header h1{font-size:1.2rem;font-weight:800;}
     flex:none;
     padding:6px 8px;gap:8px;
     overflow-x:scroll;overflow-y:visible;
+    height:auto;
     display:flex;flex-direction:row;align-items:flex-start;
     -webkit-overflow-scrolling:touch;
     scroll-snap-type:x mandatory;
@@ -386,16 +387,16 @@ header h1{font-size:1.2rem;font-weight:800;}
     align-self:flex-start !important;
   }
 
-  /* Fixed bottom queue panel */
+  /* Queue panel — natural height, no cap */
   .queue-area{
     flex-shrink:0;
     background:var(--sur);
     border-top:2px solid var(--bdr);
-    max-height:50vh;
+    max-height:none;
     display:flex;flex-direction:column;
   }
   .queue-hdr{cursor:pointer;}
-  .queue-body{overflow-y:auto;flex:1;}
+  .queue-body{overflow-y:visible;flex:1;}
   .queue-body.mobile-collapsed{display:none;}
   .player-list{gap:5px;padding:6px;}
   .p-item{width:calc(50% - 4px);}
@@ -409,15 +410,16 @@ header h1{font-size:1.2rem;font-weight:800;}
   .court-card-title{padding:3px 0 1px !important;}
   .p-item-top span[style]{font-size:1rem !important;}
   .p-item{padding:10px 11px;}
-  .court-card-title{font-size:1.3rem !important;}
+  .court-card-title{display:none !important;}
+  .court-center-label{font-size:1.1rem !important;font-weight:900 !important;}
   .court-tab{font-size:0.82rem !important;padding:5px 14px !important;}
   .cb{font-size:1rem !important;padding:10px 12px !important;}
   .staging-hdr{font-size:0.82rem !important;}
   .queue-title{font-size:0.9rem !important;}
   .team-lbl-top,.team-lbl-bot{font-size:0.78rem !important;}
 
-  /* Header compact — title fixed left, buttons scroll right */
-  header{padding:4px 8px;gap:0;flex-wrap:nowrap;flex-shrink:0;overflow:visible;}
+  /* Header sticky */
+  header{position:sticky;top:0;z-index:200;padding:4px 8px;gap:0;flex-wrap:nowrap;flex-shrink:0;overflow:visible;}
   header h1{font-size:0.9rem;white-space:nowrap;}
   .hdr-right{
     flex:1;min-width:0;
