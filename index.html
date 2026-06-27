@@ -108,7 +108,7 @@ header h1{font-size:1.2rem;font-weight:800;}
 .p-item.playing{opacity:.45;cursor:not-allowed;}
 .p-item.selected{background:#1e3a5f;border-color:#2563eb;box-shadow:0 0 0 3px #2563eb44;}
 .p-item-top{display:flex;align-items:center;gap:5px;}
-.p-item-bot{display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
+.p-item-bot{display:flex;align-items:flex-end;gap:6px;}
 .p-item-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:4px;}
 .p-time{font-size:0.6rem;color:var(--mut);white-space:nowrap;background:var(--sur2);border-radius:4px;padding:1px 5px;}
 .p-time.soon{color:#fbbf24;background:#451a03;}
@@ -494,7 +494,6 @@ header h1{font-size:1.2rem;font-weight:800;}
         <div class="queue-hdr" onclick="toggleQueuePanel()">
           <span class="queue-title">⏳ 候場名單</span>
           <span class="badge" id="p-count">0</span>
-          <span id="queue-arrow" style="font-size:0.65rem;color:var(--mut);margin-left:4px;transition:transform .2s">▲</span>
           <span class="select-hint-bar" id="select-hint"></span>
           <button class="btn-aa" onclick="event.stopPropagation();autoFillAll()">⚡ 自動排場</button>
         </div>
@@ -2730,12 +2729,14 @@ function renderPlayers(){
           <span style="font-size:0.7rem;font-weight:800;color:#60a5fa;flex-shrink:0">${cnt}場</span>
         </div>
         <div class="p-item-bot">
-          ${statusHtml}
-          ${p.availableTime?`<span style="font-size:0.58rem;color:#93c5fd;background:#1e3a5f;border-radius:4px;padding:1px 5px;margin-left:2px">🕐${p.availableTime}</span>`:''}
-        </div>
-        <div class="p-item-actions">
-          ${partnerName?`<span style="font-size:0.65rem;color:var(--pur);flex:1;text-align:left">綁 ${partnerName}</span>`:''}
-          <button class="btn-rm" onclick="event.stopPropagation();removePlayer(${p.id})" style="font-size:0.7rem">✕</button>
+          <div style="display:flex;flex-direction:column;gap:2px;flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
+              ${statusHtml}
+              ${partnerName?`<span style="font-size:0.6rem;color:var(--pur)">綁${partnerName}</span>`:''}
+            </div>
+            ${p.availableTime?`<span style="font-size:0.58rem;color:#93c5fd;background:#1e3a5f;border-radius:4px;padding:1px 5px;align-self:flex-start">🕐${p.availableTime}</span>`:''}
+          </div>
+          <button class="btn-rm" onclick="event.stopPropagation();removePlayer(${p.id})" style="font-size:0.7rem;align-self:flex-end">✕</button>
         </div>
       `;
       list.appendChild(div);
