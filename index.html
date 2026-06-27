@@ -1306,7 +1306,7 @@ var _syncTimer = null;
 var _syncInterval = null;
 function startAutoSync(){
   if(_syncInterval) return;
-  _syncInterval = setInterval(function(){ syncSession(true); }, 1000);
+  _syncInterval = setInterval(function(){ syncSession(true); }, 10000);
 }
 function syncSession(immediate){
   if(!currentUser || isViewerMode || !isPro()) return;
@@ -1343,7 +1343,7 @@ function syncSession(immediate){
 // ── QR Code ──────────────────────────────────────────────
 // ── Join Requests (主辦人端) ─────────────────────────────
 function startJoinListener(){
-  if(!currentUser) return;
+  if(!currentUser || isJoinMode || isViewerMode) return;
   db.collection('joinRequests')
     .where('organizerUid','==',currentUser.uid)
     .where('status','==','pending')
@@ -2250,10 +2250,11 @@ function finishCourtWithScore(cid, sA, sB){
     c._lastWinners=[];
     c.playerSlots=[null,null,null,null];
     c.status='empty';
-    if(c.nextSlots.every(id=>id!==null)){
+    if(c.nextSlots.some(id=>id!==null)){
       c.playerSlots=[...c.nextSlots];
       c.nextSlots=[null,null,null,null];
-      startCourt(cid);
+      if(c.playerSlots.every(id=>id!==null)) startCourt(cid);
+      else render();
     } else { render(); }
     return;
   }
@@ -2824,7 +2825,7 @@ function renderCourts(){
         if(!p) return `<div class="slot-box filled team${t}"><span class="slot-empty-hint">─</span></div>`;
         const isFP=hasPair(pid);
         return `<div class="slot-box filled team${t}${!isPlay?' slot-pickable':''}" ${!isPlay?`onclick="placeInSlot(${c.id},${pos})" title="點擊拿起球員"`:''}>
-          <div style="display:flex;align-items:center;gap:4px;pointer-events:none">
+          <div style="display:flex;align-items:center;gap:8px;pointer-events:none">
             <div class="mn ${LCLS(p.level)}">${tierName(p.level)}</div>
             <span class="slot-player-name">${p.name}${isFP?' 💜':''}</span>
           </div>
