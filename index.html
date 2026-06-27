@@ -1598,7 +1598,7 @@ function LVL(level){ return Math.max(1,Math.min(4,parseInt(level)||1)); }
 function tierOf(level){ return LVL(level)-1; } // 0-indexed
 function LCLS(level){
   const t=tierOf(level);
-  return ['lt1','lt3','lt4','lt5','lt7'][t]||'lt1';
+  return ['lt1','lt2','lt3','lt4'][t]||'lt1';
 }
 const TIER_NAMES=['新','初','中','高'];
 function tierName(level){ return TIER_NAMES[tierOf(level)]||''; }
@@ -1938,7 +1938,7 @@ function renderLeft(){
         const cntColor=rCnt>0&&rCnt>=avgCnt+2?'#f87171':rCnt>0?'#60a5fa':'var(--mut)';
         row.innerHTML=`
           <div class="mn ${LCLS(r.level)}" style="width:32px;height:32px;font-size:0.8rem;font-weight:900;flex-shrink:0">${tierName(r.level)}</div>
-          <span class="roster-name">${r.name}${r.fixed?'<span style="font-size:0.55rem;color:var(--pur);margin-left:3px">★</span>':''}</span>
+          <span class="roster-name">${r.name}</span>
           <button class="btn-roster-edit" onclick="openRosterEditModal(${r.id})" title="編輯">✏️</button>
           <button class="btn-roster-add" onclick="addFromRoster(${r.id})" title="加入本場">＋</button>
         `;
