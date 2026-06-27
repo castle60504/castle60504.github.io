@@ -77,10 +77,10 @@ header h1{font-size:1.2rem;font-weight:800;}
 .tier-hdr .tier-arrow{font-size:0.55rem;transition:transform 0.2s;}
 .tier-hdr.collapsed .tier-arrow{transform:rotate(-90deg);}
 .tier-rows{overflow:hidden;transition:max-height 0.2s ease;}
-.roster-row{display:flex;align-items:center;gap:5px;padding:7px 10px;cursor:pointer;border-radius:0;}
+.roster-row{display:flex;align-items:center;gap:7px;padding:11px 10px;cursor:pointer;border-radius:0;}
 .roster-row:hover{background:var(--sur2);}
 .roster-row .mn{width:24px;height:24px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.62rem;font-weight:900;flex-shrink:0;}
-.roster-name{flex:1;font-size:0.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.roster-name{flex:1;font-size:1rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .btn-roster-add{background:none;border:1px solid var(--bdr);color:var(--txt2);cursor:pointer;font-size:0.7rem;padding:1px 5px;border-radius:4px;flex-shrink:0;}
 .btn-roster-add:hover{background:var(--blu);color:#fff;border-color:var(--blu);}
 .btn-roster-edit{background:none;border:none;color:var(--bdr);cursor:pointer;font-size:0.72rem;padding:1px 4px;border-radius:4px;flex-shrink:0;}
@@ -1318,7 +1318,12 @@ function openRosterEditModal(rid){
   if(!r) return;
   editingRosterId = rid;
   document.getElementById('roster-edit-name').value = r.name;
-  document.getElementById('roster-edit-lvl').value = String(LVL(r.level)); // 舊值自動對應新1-5
+  // 設定等級（相容 iOS Safari）
+  const editSel = document.getElementById('roster-edit-lvl');
+  const targetLvl = String(LVL(r.level));
+  for(let i=0;i<editSel.options.length;i++){
+    editSel.options[i].selected = (editSel.options[i].value === targetLvl);
+  }
   document.getElementById('modal-roster-edit').classList.add('open');
   setTimeout(()=>document.getElementById('roster-edit-name').focus(), 100);
 }
@@ -1337,9 +1342,11 @@ function saveRosterEdit(){
   if(!name){ nameEl.focus(); return; }
   const duplicate = roster.find(rx=>rx.name===name && rx.id!==editingRosterId);
   if(duplicate){ alert(`「${name}」已在球員庫中`); return; }
+  const newLvl = document.getElementById('roster-edit-lvl').value;
+  if(!newLvl){ alert('請選擇等級'); return; }
   const oldName = r.name;
   r.name = name;
-  r.level = document.getElementById('roster-edit-lvl').value;
+  r.level = newLvl;
   // Also update any active player with the same name
   const ap = players.find(p=>p.name===oldName);
   if(ap){ ap.name = name; ap.level = r.level; }
@@ -1435,7 +1442,7 @@ function renderLeft(){
         const avgCnt=players.length?players.reduce((s,p)=>s+(p.playCount||0),0)/Math.max(1,players.length):0;
         const cntColor=rCnt>0&&rCnt>=avgCnt+2?'#f87171':rCnt>0?'#60a5fa':'var(--mut)';
         row.innerHTML=`
-          <div class="mn ${LCLS(r.level)}" style="height:22px;font-size:0.6rem;font-weight:900;flex-shrink:0">${tierName(r.level)}</div>
+          <div class="mn ${LCLS(r.level)}" style="height:26px;min-width:36px;font-size:0.75rem;font-weight:900;flex-shrink:0">${tierName(r.level)}</div>
           <span class="roster-name">${r.name}${r.fixed?'<span style="font-size:0.55rem;color:var(--pur);margin-left:3px">★</span>':''}</span>
           <button class="btn-roster-edit" onclick="openRosterEditModal(${r.id})" title="編輯">✏️</button>
           <button class="btn-roster-add" onclick="addFromRoster(${r.id})" title="加入本場">＋</button>
