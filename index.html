@@ -964,12 +964,29 @@ function syncSession(immediate){
   var delay = immediate ? 0 : 2000;
   _syncTimer = setTimeout(function(){
     var sessionData = {
-      courts: courts.map(function(c){ return {id:c.id,name:c.name,status:c.status,playerSlots:c.playerSlots,nextSlots:c.nextSlots,scoreA:c.scoreA,scoreB:c.scoreB,startTime:c.startTime||null}; }),
-      players: players.map(function(p){ return {id:p.id,name:p.name,level:p.level,status:p.status,playCount:p.playCount||0,offTime:p.offTime||null}; }),
+      courts: courts.map(function(c){ return {
+        id: c.id || 0,
+        name: c.name || String(c.id || ''),
+        status: c.status || 'empty',
+        playerSlots: (c.playerSlots || [null,null,null,null]).map(function(x){ return x===undefined?null:x; }),
+        nextSlots: (c.nextSlots || [null,null,null,null]).map(function(x){ return x===undefined?null:x; }),
+        scoreA: c.scoreA || 0,
+        scoreB: c.scoreB || 0,
+        startTime: c.startTime || null
+      }; }),
+      players: players.map(function(p){ return {
+        id: p.id || 0,
+        name: p.name || '',
+        level: p.level || '1',
+        status: p.status || 'waiting',
+        playCount: p.playCount || 0,
+        offTime: p.offTime || null
+      }; }),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
     db.collection('users').doc(currentUser.uid).set({ session: sessionData }, { merge: true })
-      .catch(function(e){ console.warn('syncSession error:', e); });
+      .then(function(){ console.log('syncSession OK'); })
+      .catch(function(e){ console.warn('syncSession error:', e.code, e.message); });
   }, delay);
 }
 
