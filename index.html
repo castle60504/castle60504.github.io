@@ -465,6 +465,7 @@ header h1{font-size:1.2rem;font-weight:800;}
     <button class="btn-pair-cfg" style="background:#7f1d1d" onclick="resetSession()">🔄 清除</button>
     <button class="btn-update" id="btn-update" onclick="manualCheckUpdate()">🔄 更新</button>
     <button id="btn-qr" class="btn-update" onclick="isPro()?showQRCode():showUpgradeHint('QR碼觀看者為 Pro 功能')" style="background:#0f4c75;border-color:#1a6fa8;color:#7dd3fc">📱 QR碼</button>
+    <button class="btn-update" onclick="forceSyncSession()" style="background:#1a3a1a;border-color:#4ade80;color:#4ade80" title="強制同步到 Firestore">🔄 同步</button>
     <button class="btn-update" onclick="openHelpModal()" style="background:#1e3a5f;border-color:#3b82f6;color:#93c5fd">❓ 說明</button>
     <button id="btn-signout" onclick="signOut()" style="display:none;background:#3b0764;color:#e9d5ff;border:1px solid #6b21a8;border-radius:7px;padding:7px 13px;font-size:0.92rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">🚪 登出</button>
   </div>
@@ -991,6 +992,29 @@ function syncSession(immediate){
 }
 
 // ── QR Code ──────────────────────────────────────────────
+async function forceSyncSession(){
+  if(!currentUser){ alert('請先登入'); return; }
+  var sessionData = {
+    courts: courts.map(function(c){ return {
+      id: c.id||0, name: c.name||String(c.id||''), status: c.status||'empty',
+      playerSlots: (c.playerSlots||[null,null,null,null]).map(function(x){return x===undefined?null:x;}),
+      nextSlots: (c.nextSlots||[null,null,null,null]).map(function(x){return x===undefined?null:x;}),
+      scoreA: c.scoreA||0, scoreB: c.scoreB||0, startTime: c.startTime||null
+    };}),
+    players: players.map(function(p){ return {
+      id: p.id||0, name: p.name||'', level: p.level||'1',
+      status: p.status||'waiting', playCount: p.playCount||0, offTime: p.offTime||null
+    };}),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try {
+    await db.collection('users').doc(currentUser.uid).set({ session: sessionData }, { merge: true });
+    alert('✅ 同步成功！Firestore 已更新，QR觀看者可以看到場地了');
+  } catch(e) {
+    alert('❌ 同步失敗：' + e.code + '\n' + e.message);
+  }
+}
+
 function showQRCode(){
   if(!currentUser){ alert('請先登入'); return; }
   var url = location.origin + location.pathname + '?view=' + currentUser.uid;
@@ -2495,11 +2519,12 @@ function renderQueue(){
 
 function renderStats(){
   const pid=playingIds();
-  document.getElementById('s-total').textContent=players.length;
-  document.getElementById('s-play').textContent=pid.size;
-  document.getElementById('s-wait').textContent=players.filter(p=>p.status==='waiting').length;
-  document.getElementById('s-cool').textContent=players.filter(p=>p.status==='cooling').length;
-  document.getElementById('s-courts').textContent=`${courts.filter(c=>c.status==='playing').length}/${courts.length}`;
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  set('s-total',players.length);
+  set('s-play',pid.size);
+  set('s-wait',players.filter(p=>p.status==='waiting').length);
+  set('s-cool',players.filter(p=>p.status==='cooling').length);
+  set('s-courts',`${courts.filter(c=>c.status==='playing').length}/${courts.length}`);
 }
 
 
