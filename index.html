@@ -399,13 +399,13 @@ header h1{font-size:1.2rem;font-weight:800;}
   .p-item{width:calc(50% - 4px);}
 
   /* 字體放大 */
-  .slot-player-name{font-size:1.2rem !important;font-weight:700;}
+  .slot-player-name{font-size:1.35rem !important;font-weight:700;}
   .mn{width:26px !important;height:26px !important;font-size:0.75rem !important;}
   .p-item-top span[style]{font-size:1rem !important;}
   .p-item{padding:10px 11px;}
   .court-card-title{font-size:1.3rem !important;}
   .court-tab{font-size:0.82rem !important;padding:5px 14px !important;}
-  .cb{font-size:0.88rem !important;padding:8px 12px !important;}
+  .cb{font-size:1rem !important;padding:10px 12px !important;}
   .staging-hdr{font-size:0.82rem !important;}
   .queue-title{font-size:0.9rem !important;}
   .team-lbl-top,.team-lbl-bot{font-size:0.78rem !important;}
@@ -503,7 +503,7 @@ header h1{font-size:1.2rem;font-weight:800;}
     <div class="row">
       <input id="inp-name" type="text" placeholder="暱稱" maxlength="8" style="flex:2">
       <select id="inp-lvl" style="flex:1.4">
-        <option value="1">1 新手</option><option value="2">2 新手</option><option value="3">3 新手</option><option value="4">4 初階</option><option value="5" selected>5 初階</option><option value="6">6 初中</option><option value="7">7 初中</option><option value="8">8 中階</option><option value="9">9 中階</option><option value="10">10 中進</option><option value="11">11 中進</option><option value="12">12 中進</option><option value="13">13 高階</option><option value="14">14 高階</option><option value="15">15 高階</option><option value="16">16 職業</option><option value="17">17 職業</option><option value="18">18 職業</option>
+        <option value="1">新手</option><option value="2">初階</option><option value="3" selected>中階</option><option value="4">中高</option><option value="5">高階</option>
       </select>
     </div>
     <div class="m-acts">
@@ -561,7 +561,7 @@ header h1{font-size:1.2rem;font-weight:800;}
     <div class="row">
       <input id="roster-inp-name" type="text" placeholder="暱稱" maxlength="8" style="flex:2">
       <select id="roster-inp-lvl" style="flex:1.4">
-        <option value="1">1 新手</option><option value="2">2 新手</option><option value="3">3 新手</option><option value="4">4 初階</option><option value="5" selected>5 初階</option><option value="6">6 初中</option><option value="7">7 初中</option><option value="8">8 中階</option><option value="9">9 中階</option><option value="10">10 中進</option><option value="11">11 中進</option><option value="12">12 中進</option><option value="13">13 高階</option><option value="14">14 高階</option><option value="15">15 高階</option><option value="16">16 職業</option><option value="17">17 職業</option><option value="18">18 職業</option>
+        <option value="1">新手</option><option value="2">初階</option><option value="3" selected>中階</option><option value="4">中高</option><option value="5">高階</option>
       </select>
     </div>
     <div class="m-acts">
@@ -578,7 +578,7 @@ header h1{font-size:1.2rem;font-weight:800;}
     <div class="row">
       <input id="roster-edit-name" type="text" placeholder="暱稱" maxlength="8" style="flex:2">
       <select id="roster-edit-lvl" style="flex:1.4">
-        <option value="1">1 新手</option><option value="2">2 新手</option><option value="3">3 新手</option><option value="4">4 初階</option><option value="5">5 初階</option><option value="6">6 初中</option><option value="7">7 初中</option><option value="8">8 中階</option><option value="9">9 中階</option><option value="10">10 中進</option><option value="11">11 中進</option><option value="12">12 中進</option><option value="13">13 高階</option><option value="14">14 高階</option><option value="15">15 高階</option><option value="16">16 職業</option><option value="17">17 職業</option><option value="18">18 職業</option>
+        <option value="1">新手</option><option value="2">初階</option><option value="3">中階</option><option value="4">中高</option><option value="5">高階</option>
       </select>
     </div>
     <div class="m-acts">
@@ -877,6 +877,7 @@ async function loadUserRoster(){
     if(doc.exists && doc.data().roster && doc.data().roster.length > 0){
       roster = doc.data().roster;
       rid = roster.reduce(function(m,r){return Math.max(m,r.id);}, 0) + 1;
+      renderLeft();
     }
     // 如果 Firestore 沒有資料（新用戶），從 localStorage 球員庫遷移
     else {
@@ -1098,8 +1099,8 @@ function closeSetupModal(){
   document.getElementById('modal-setup').style.display = 'none';
 }
 
-// Level system: 1-18 (台灣羽球推廣協會)
-const TIER_RANGES=[[1,3],[4,5],[6,7],[8,9],[10,12],[13,15],[16,18]];
+// Level system: 5 levels
+const TIER_RANGES=[[1,1],[2,2],[3,3],[4,4],[5,5]];
 function LVL(level){ return parseInt(level)||1; }
 function tierOf(level){
   const n=LVL(level);
@@ -1107,9 +1108,9 @@ function tierOf(level){
 }
 function LCLS(level){
   const t=tierOf(level);
-  return ['lt1','lt2','lt3','lt4','lt5','lt6','lt7'][t]||'lt1';
+  return ['lt1','lt3','lt4','lt5','lt7'][t]||'lt1';
 }
-const TIER_NAMES=['新手','新手','初階','初中','中階','高階','職業'];
+const TIER_NAMES=['新手','初階','中階','中高','高階'];
 function tierName(level){ return TIER_NAMES[tierOf(level)]||''; }
 const PARTNER_HISTORY_LEN = 12;
 
@@ -1394,16 +1395,16 @@ function renderLeft(){
   body.innerHTML='';
 
   // Group roster by tier
-  const TIER_LABEL=['新手(1-3)','初階(4-5)','初中(6-7)','中階(8-9)','中進(10-12)','高階(13-15)','職業(16-18)'];
-  const groups = Array.from({length:7},()=>[]);
+  const TIER_LABEL=['新手','初階','中階','中高','高階'];
+  const groups = Array.from({length:5},()=>[]);
   roster.forEach(r=>{
     if(filter && !r.name.toLowerCase().includes(filter)) return;
     const t = tierOf(r.level);
-    if(t>=0 && t<7) groups[t].push(r);
+    if(t>=0 && t<5) groups[t].push(r);
   });
 
   [...groups].reverse().forEach((grp, ri)=>{
-    const ti = 6 - ri;
+    const ti = 4 - ri;
     if(grp.length===0) return;
     const collapsed = !!_tierCollapsed[ti];
     const hdr=document.createElement('div');
@@ -2159,17 +2160,17 @@ function renderPlayers(){
   });
 
   // Only show players who are NOT in any slot and NOT playing
-  const TIER_LABEL=['新手(1-3)','初階(4-5)','初中(6-7)','中階(8-9)','中進(10-12)','高階(13-15)','職業(16-18)'];
-  const groups = Array.from({length:7},()=>[]);
+  const TIER_LABEL=['新手','初階','中階','中高','高階'];
+  const groups = Array.from({length:5},()=>[]);
   players.forEach(p=>{
     if(inSlot.has(p.id)) return; // assigned — shown in court card
     if(p.status==='playing') return; // on court — shown in court card
     const t=tierOf(p.level);
-    if(t>=0&&t<7) groups[t].push(p);
+    if(t>=0&&t<5) groups[t].push(p);
   });
 
   [...groups].reverse().forEach((grp, ri)=>{
-    const ti = 6 - ri;
+    const ti = 4 - ri;
     if(grp.length===0) return;
     // Sort within group: by level desc, then non-playing first (rest desc), playing last
     const sorted=[...grp].sort((a,b)=>{
@@ -2297,11 +2298,13 @@ function renderCourts(){
     const nextFilled=c.nextSlots.filter(id=>id!==null).length;
 
     let body=`
-      <div class="team-lbl-top">🔴 隊 A</div>
-      <div class="court-grid">${[0,1].map(pos=>renderSlot(pos)).join('')}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 8px 0;min-height:22px">
+        ${isPlay&&c.startTime?`<span id="ctimer-${c.id}" style="font-size:0.8rem;font-weight:700;color:#fbbf24">${fmtTime((now()-c.startTime)/1000)}</span>`:'<span></span>'}
+        ${isPlay?`<span style="font-size:0.72rem;font-weight:700;color:#4ade80;letter-spacing:.04em">● 比賽中</span>`:'<span></span>'}
+      </div>
+      <div class="court-grid" style="background:rgba(190,24,93,0.08);border-radius:8px 8px 0 0">${[0,1].map(pos=>renderSlot(pos)).join('')}</div>
       <div class="court-net"><div class="net-line"></div><div class="court-center-label">${courtName(c)} 號場</div><div class="net-line"></div></div>
-      <div class="court-grid">${[2,3].map(pos=>renderSlot(pos)).join('')}</div>
-      <div class="team-lbl-bot">🟢 隊 B</div>
+      <div class="court-grid" style="background:rgba(6,87,70,0.1);border-radius:0 0 8px 8px">${[2,3].map(pos=>renderSlot(pos)).join('')}</div>
     `;
 
     const hasWinners=(c._lastWinners||[]).length===2&&isEmpty;
@@ -2317,16 +2320,16 @@ function renderCourts(){
     `;
 
     card.innerHTML=`
-      <div class="court-card-title">${courtName(c)} 號場${isPlay?' ⚔️':''}</div>
+      <div class="court-card-title">${courtName(c)} 號場</div>
       <div class="court-body">${body}</div>
       <hr class="staging-separator">
       ${stagingHtml}
       <div class="court-actions">
-        <button class="cb cs" ${isReady?'':'disabled'} onclick="startCourt(${c.id})">▶ 開始</button>
-        <button class="cb cf" ${isPlay?'':'disabled'} onclick="finishCourt(${c.id})">⏹ 下場</button>
-        <button class="cb ca" ${isPlay?'disabled':''} onclick="autoPickCourt(${c.id})">⚡自動</button>
-        ${!isEmpty?`<button class="cb cc" ${isPlay?'disabled':''} onclick="clearCourt(${c.id})">🗑清空</button>`:''}
-        ${!isEmpty?`<button class="cb" style="background:#7c3aed;color:#fff" onclick="callCourt(${c.id})">📢</button>`:''}
+        <button class="cb cs" ${isReady?'':'disabled'} onclick="startCourt(${c.id})">開始</button>
+        <button class="cb cf" ${isPlay?'':'disabled'} onclick="finishCourt(${c.id})">下場</button>
+        <button class="cb ca" ${isPlay?'disabled':''} onclick="autoPickCourt(${c.id})">自動</button>
+        ${!isEmpty?`<button class="cb cc" ${isPlay?'disabled':''} onclick="clearCourt(${c.id})">清空</button>`:''}
+        ${!isEmpty?`<button class="cb" style="background:#7c3aed;color:#fff" onclick="callCourt(${c.id})">叫號</button>`:''}
       </div>
     `;
     area.appendChild(card);
@@ -2334,7 +2337,7 @@ function renderCourts(){
     // Tab
     const tab=document.createElement('button');
     tab.className='court-tab'+(isPlay?' active':'');
-    tab.textContent=`${courtName(c)} 號場${isPlay?' ⚔':''}`;
+    tab.textContent=`${courtName(c)} 號場`;
     tab.onclick=()=>{
       const cardEl=document.getElementById(`court-card-${c.id}`);
       if(cardEl) cardEl.scrollIntoView({behavior:'smooth',block:'nearest',inline:'start'});
@@ -2459,6 +2462,13 @@ function manualCheckUpdate(){
   setInterval(function(){
     const hasCooling = players.some(p => p.status === 'cooling' || (p.offTime && p.status === 'waiting'));
     if(hasCooling) renderPlayers();
+    // 更新場地計時器（不重新渲染整個場地，只更新文字）
+    courts.forEach(function(c){
+      if(c.status==='playing' && c.startTime){
+        var el = document.getElementById('ctimer-'+c.id);
+        if(el) el.textContent = fmtTime((now()-c.startTime)/1000);
+      }
+    });
   }, 1000);
 })();
 
