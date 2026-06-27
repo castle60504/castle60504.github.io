@@ -1074,8 +1074,25 @@ function clearMyName(){
   _viewerNameChosen = false;
   _lastCourtNotified = null;
   localStorage.removeItem('viewer-my-name');
-  document.getElementById('viewer-my-bar').style.display='none';
-  document.getElementById('viewer-pick-bar').style.display='flex';
+  var myBar = document.getElementById('viewer-my-bar');
+  if(myBar) myBar.style.display='none';
+  // 重新顯示選人列表（用目前已載入的 players）
+  var bar = document.getElementById('viewer-pick-bar');
+  var list = document.getElementById('viewer-pick-list');
+  if(bar && list && players.length>0){
+    list.innerHTML='';
+    var lvlColor={1:{bg:'#4ade80',txt:'#14532d'},2:{bg:'#bef264',txt:'#365314'},3:{bg:'#f9a8d4',txt:'#831843'},4:{bg:'#fde047',txt:'#713f12'}};
+    players.forEach(function(p){
+      var c=lvlColor[parseInt(p.level)]||{bg:'var(--sur)',txt:'var(--txt)'};
+      var btn=document.createElement('button');
+      btn.style.cssText='background:'+c.bg+';color:'+c.txt+';border:none;border-radius:999px;padding:6px 16px;font-size:0.9rem;font-weight:700;cursor:pointer;margin:2px';
+      btn.textContent=p.name;
+      btn.onclick=function(){ setMyViewerName(p.name); };
+      list.appendChild(btn);
+    });
+    bar.style.display='flex';
+    bar.style.flexDirection='column';
+  }
   renderViewerUI(null);
 }
 
@@ -1158,17 +1175,20 @@ function renderViewerUI(updatedAt){
     });
     var teamA = playerObjs.slice(0,2).filter(Boolean);
     var teamB = playerObjs.slice(2,4).filter(Boolean);
-    function nameSpan(p, baseColor){
+    var lvlColorC={1:{bg:'#4ade80',txt:'#14532d'},2:{bg:'#bef264',txt:'#365314'},3:{bg:'#f9a8d4',txt:'#831843'},4:{bg:'#fde047',txt:'#713f12'}};
+    function nameSpan(p){
       if(!p) return '';
       var isMe = _myPlayerName && p.name===_myPlayerName;
-      var style = 'font-weight:700;color:'+baseColor+(isMe?';background:rgba(255,255,255,0.15);border:2.5px solid #fff;border-radius:8px;padding:2px 8px':'');
-      return '<span style="'+style+'">'+p.name+(isMe?' ★':'')+'</span>';
+      var lc = lvlColorC[parseInt(p.level)]||{bg:'#4ade80',txt:'#14532d'};
+      var base = 'display:inline-block;font-weight:700;background:'+lc.bg+';color:'+lc.txt+';border-radius:8px;padding:3px 10px;font-size:1rem;';
+      if(isMe) base += 'border:2.5px solid #fff;box-shadow:0 0 0 3px rgba(255,255,255,0.35);';
+      return '<span style="'+base+'">'+p.name+'</span>';
     }
     div.innerHTML = '<div style="font-size:1rem;font-weight:900;color:#60a5fa;margin-bottom:10px">場地 '+c.name+'  <span style="font-size:0.85rem;padding:3px 10px;border-radius:999px;background:'+(c.status==='playing'?'#14532d':'var(--bdr)')+';color:'+(c.status==='playing'?'#4ade80':'var(--mut)')+'">'+({empty:'空',playing:'比賽中',ready:'準備中'}[c.status]||c.status)+'</span></div>'
-      + (teamA.length||teamB.length ? '<div style="display:flex;align-items:center;gap:10px;font-size:1.2rem">'
-        + '<span>'+teamA.map(function(p){return nameSpan(p,'#f472b6');}).join(' <span style="color:#f472b6">/ </span>')+'</span>'
-        + '<span style="color:var(--mut)">vs</span>'
-        + '<span>'+teamB.map(function(p){return nameSpan(p,'#34d399');}).join(' <span style="color:#34d399">/ </span>')+'</span>'
+      + (teamA.length||teamB.length ? '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+        + '<span style="display:flex;gap:6px">'+teamA.map(function(p){return nameSpan(p);}).join('')+'</span>'
+        + '<span style="color:var(--mut);font-size:1rem">vs</span>'
+        + '<span style="display:flex;gap:6px">'+teamB.map(function(p){return nameSpan(p);}).join('')+'</span>'
         + '</div>' : '<div style="color:var(--mut);font-size:1rem">空場</div>');
     courtsDiv.appendChild(div);
   });
@@ -1182,7 +1202,7 @@ function renderViewerUI(updatedAt){
     var isMe = _myPlayerName && p.name===_myPlayerName;
     var chip = document.createElement('div');
     chip.style.cssText = 'background:'+c.bg+';color:'+c.txt+';border-radius:999px;padding:8px 18px;font-size:1.1rem;font-weight:700;'+(isMe?'border:2.5px solid #fff;box-shadow:0 0 0 3px rgba(255,255,255,0.4);':'border:none;');
-    chip.textContent = p.name + (isMe?' ★':'');
+    chip.textContent = p.name;
     queueDiv.appendChild(chip);
   });
   emptyDiv.style.display = (courts.length===0 && waiting.length===0) ? 'block' : 'none';
