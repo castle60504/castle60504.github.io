@@ -72,9 +72,9 @@ header h1{font-size:1.2rem;font-weight:800;}
 .left-body{flex:1;overflow-y:auto;padding:4px 0;}
 .left-body::-webkit-scrollbar{width:3px;}
 .left-body::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px;}
-.tier-hdr{font-size:0.62rem;font-weight:700;letter-spacing:.06em;color:var(--mut);padding:5px 10px 2px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;gap:4px;user-select:none;}
+.tier-hdr{font-size:0.85rem;font-weight:700;letter-spacing:.06em;color:var(--mut);padding:5px 10px 2px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;gap:4px;user-select:none;}
 .tier-hdr:hover{color:var(--txt);}
-.tier-hdr .tier-arrow{font-size:0.55rem;transition:transform 0.2s;}
+.tier-hdr .tier-arrow{font-size:0.75rem;transition:transform 0.2s;}
 .tier-hdr.collapsed .tier-arrow{transform:rotate(-90deg);}
 .tier-rows{overflow:hidden;transition:max-height 0.2s ease;}
 .roster-row{display:flex;align-items:center;gap:7px;padding:11px 10px;cursor:pointer;border-radius:0;}
@@ -270,7 +270,7 @@ header h1{font-size:1.2rem;font-weight:800;}
 .queue-body::-webkit-scrollbar{width:3px;}
 .queue-body::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px;}
 /* tier group header in player area */
-.tier-group-hdr{font-size:0.62rem;font-weight:700;color:var(--mut);padding:4px 2px 2px;width:100%;text-transform:uppercase;letter-spacing:.06em;}
+.tier-group-hdr{font-size:0.85rem;font-weight:700;color:var(--mut);padding:4px 2px 2px;width:100%;text-transform:uppercase;letter-spacing:.06em;}
 /* legacy chip (not used in main view anymore but keep for compat) */
 .qchip{display:flex;align-items:center;gap:4px;background:var(--sur2);border:1px solid var(--bdr);border-radius:999px;padding:3px 9px 3px 4px;font-size:0.76rem;white-space:nowrap;}
 .qchip.asgn{border-color:var(--blu);background:#1e3a5f;}
@@ -450,13 +450,13 @@ header h1{font-size:1.2rem;font-weight:800;}
   <div class="hdr-right">
     <button class="btn-roster-toggle" onclick="toggleRosterDrawer()">📋 球員庫</button>
     <button class="btn-pair-cfg" style="background:var(--grn)" onclick="openAddModal()">➕ 加球員</button>
-    <button class="btn-pair-cfg" onclick="openPairModal()">💜 固定搭檔</button>
+    <button id="btn-pair" class="btn-pair-cfg" onclick="isPro()?openPairModal():showUpgradeHint('固定搭檔為 Pro 功能')">💜 固定搭檔</button>
     <button class="btn-pair-cfg" style="background:#7c3aed" onclick="callAllCourts()">📢 全場叫號</button>
-    <button class="btn-pair-cfg" style="background:#0e7490" onclick="openStatsModal()">📊 戰績紀錄</button>
+    <button id="btn-stats" class="btn-pair-cfg" style="background:#0e7490" onclick="isPro()?openStatsModal():showUpgradeHint('戰績紀錄為 Pro 功能')">📊 戰績紀錄</button>
     <button class="btn-pair-cfg" style="background:var(--cyn)" onclick="openSetupModal()">⚙️ 初始設定</button>
     <button class="btn-pair-cfg" style="background:#7f1d1d" onclick="resetSession()">🔄 清除</button>
     <button class="btn-update" id="btn-update" onclick="manualCheckUpdate()">🔄 更新</button>
-    <button class="btn-update" onclick="showQRCode()" style="background:#0f4c75;border-color:#1a6fa8;color:#7dd3fc">📱 QR碼</button>
+    <button id="btn-qr" class="btn-update" onclick="isPro()?showQRCode():showUpgradeHint('QR碼觀看者為 Pro 功能')" style="background:#0f4c75;border-color:#1a6fa8;color:#7dd3fc">📱 QR碼</button>
     <button class="btn-update" onclick="openHelpModal()" style="background:#1e3a5f;border-color:#3b82f6;color:#93c5fd">❓ 說明</button>
     <button id="btn-signout" onclick="signOut()" style="display:none;background:#3b0764;color:#e9d5ff;border:1px solid #6b21a8;border-radius:7px;padding:7px 13px;font-size:0.92rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">🚪 登出</button>
   </div>
@@ -503,7 +503,7 @@ header h1{font-size:1.2rem;font-weight:800;}
     <div class="row">
       <input id="inp-name" type="text" placeholder="暱稱" maxlength="8" style="flex:2" autocomplete="off" autocorrect="off" autocapitalize="off">
       <select id="inp-lvl" style="flex:1.4">
-        <option value="" disabled selected>請選擇</option><option value="1">新手</option><option value="2">初階</option><option value="3">中階</option><option value="4">中高</option><option value="5">高階</option>
+        <option value="" disabled selected>請選擇</option><option value="1">新</option><option value="2">初</option><option value="3">中</option><option value="4">高</option>
       </select>
     </div>
     <div class="m-acts">
@@ -561,7 +561,7 @@ header h1{font-size:1.2rem;font-weight:800;}
     <div class="row">
       <input id="roster-inp-name" type="text" placeholder="暱稱" maxlength="8" style="flex:2" autocomplete="off" autocorrect="off" autocapitalize="off">
       <select id="roster-inp-lvl" style="flex:1.4" onchange="_rosterAddLvl=this.value">
-        <option value="" disabled selected>請選擇</option><option value="1">新手</option><option value="2">初階</option><option value="3">中階</option><option value="4">中高</option><option value="5">高階</option>
+        <option value="" disabled selected>請選擇</option><option value="1">新</option><option value="2">初</option><option value="3">中</option><option value="4">高</option>
       </select>
     </div>
     <div class="m-acts">
@@ -578,7 +578,7 @@ header h1{font-size:1.2rem;font-weight:800;}
     <div class="row">
       <input id="roster-edit-name" type="text" placeholder="暱稱" maxlength="8" style="flex:2" autocomplete="off" autocorrect="off" autocapitalize="off">
       <select id="roster-edit-lvl" style="flex:1.4" onchange="_editLvl=this.value">
-        <option value="1">新手</option><option value="2">初階</option><option value="3">中階</option><option value="4">中高</option><option value="5">高階</option>
+        <option value="1">新</option><option value="2">初</option><option value="3">中</option><option value="4">高</option>
       </select>
     </div>
     <div class="m-acts">
@@ -782,6 +782,27 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 let currentUser = null;
+let _userPro = false; // 從 Firestore 載入
+
+function isPro(){ return _userPro; }
+
+function updateProUI(){
+  // QR碼、戰績、固定搭檔按鈕只有 Pro 才能用
+  ['btn-qr','btn-stats','btn-pair'].forEach(function(id){
+    const el=document.getElementById(id);
+    if(el) el.style.opacity = isPro()?'1':'0.45';
+  });
+}
+
+function showUpgradeHint(msg){
+  if(document.getElementById('upgrade-toast')) return;
+  const t=document.createElement('div');
+  t.id='upgrade-toast';
+  t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1e3a5f;border:2px solid #60a5fa;color:#e2e8f0;border-radius:12px;padding:12px 20px;z-index:9999;font-size:0.85rem;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.6);max-width:300px';
+  t.innerHTML=`<div style="font-weight:700;margin-bottom:4px">🔒 ${msg||'升級 Pro 解鎖此功能'}</div><div style="font-size:0.72rem;color:#93c5fd">聯絡主辦人升級 Pro 版</div>`;
+  document.body.appendChild(t);
+  setTimeout(()=>{if(t.parentNode)t.parentNode.removeChild(t);},3000);
+}
 
 // ── 觀看者模式 ──────────────────────────────────────────
 const _urlParams = new URLSearchParams(location.search);
@@ -874,19 +895,19 @@ async function loadUserRoster(){
   if(!currentUser) return;
   try {
     var doc = await db.collection('users').doc(currentUser.uid).get();
+    if(doc.exists){ _userPro = !!doc.data().isPro; updateProUI(); }
     if(doc.exists && doc.data().roster && doc.data().roster.length > 0){
       roster = doc.data().roster;
       rid = roster.reduce(function(m,r){return Math.max(m,r.id);}, 0) + 1;
-      // 一次性把舊 1-18 等級轉換成新 1-5
-      var needsMigration = roster.some(function(r){ return parseInt(r.level)>5; });
+      // 遷移舊等級 → 新 4 級制（新/初/中/高）
+      var needsMigration = roster.some(function(r){ return parseInt(r.level)>4; });
       if(needsMigration){
         roster.forEach(function(r){
           var n=parseInt(r.level)||1;
-          if(n<=3) r.level='1';
-          else if(n<=5) r.level='2';
-          else if(n<=9) r.level='3';
-          else if(n<=12) r.level='4';
-          else r.level='5';
+          if(n<=1) r.level='1';
+          else if(n<=2) r.level='2';
+          else if(n<=3) r.level='3';
+          else r.level='4'; // 舊 4(中高) 和 5(高階) 都併到 4(高)
         });
         saveUserRoster();
       }
@@ -964,14 +985,14 @@ let fixedPairs = []; // [{id1, id2}]
 
 // Roster state — 固定球員（不可刪除）
 let roster = [
-  {id:1, name:'CC',   level:'5', fixed:true},
+  {id:1, name:'CC',   level:'4', fixed:true},
   {id:2, name:'Ken',  level:'6', fixed:true},
-  {id:3, name:'慧珍', level:'5', fixed:true},
+  {id:3, name:'慧珍', level:'4', fixed:true},
   {id:4, name:'灰狼', level:'7', fixed:true},
   {id:5, name:'小齊', level:'4', fixed:true},
   {id:6, name:'阿嘎', level:'7', fixed:true},
   {id:7, name:'冠冠', level:'7', fixed:true},
-  {id:8, name:'等等', level:'5', fixed:true},
+  {id:8, name:'等等', level:'4', fixed:true},
   {id:9, name:'派派', level:'4', fixed:true},
 ];
 let rid = 10;
@@ -991,7 +1012,9 @@ let setupCourtCount = 3;
 let setupNamingType = 'number';
 
 function adjustSetupCourts(delta){
-  setupCourtCount = Math.max(1, Math.min(10, setupCourtCount + delta));
+  const maxCourts = isPro() ? 20 : 2;
+  setupCourtCount = Math.max(1, Math.min(maxCourts, setupCourtCount + delta));
+  if(!isPro() && setupCourtCount > 2){ setupCourtCount=2; showUpgradeHint('免費版最多 2 個場地'); }
   document.getElementById('setup-court-display').textContent = setupCourtCount;
   updateSetupNamingUI();
 }
@@ -1112,14 +1135,14 @@ function closeSetupModal(){
   document.getElementById('modal-setup').style.display = 'none';
 }
 
-// Level system: 5 levels (1=新手 2=初階 3=中階 4=中高 5=高階)
-function LVL(level){ return Math.max(1,Math.min(5,parseInt(level)||1)); }
+// Level system: 4 levels (1=新 2=初 3=中 4=高)
+function LVL(level){ return Math.max(1,Math.min(4,parseInt(level)||1)); }
 function tierOf(level){ return LVL(level)-1; } // 0-indexed
 function LCLS(level){
   const t=tierOf(level);
   return ['lt1','lt3','lt4','lt5','lt7'][t]||'lt1';
 }
-const TIER_NAMES=['新手','初階','中階','中高','高階'];
+const TIER_NAMES=['新','初','中','高'];
 function tierName(level){ return TIER_NAMES[tierOf(level)]||''; }
 const PARTNER_HISTORY_LEN = 12;
 
@@ -1329,7 +1352,7 @@ function openRosterEditModal(rid){
   // 動態重建選項並設定 _editLvl（相容 iOS Safari）
   const editSel = document.getElementById('roster-edit-lvl');
   const targetLvl = String(LVL(r.level));
-  const lvlOpts = [{v:'1',n:'新手'},{v:'2',n:'初階'},{v:'3',n:'中階'},{v:'4',n:'中高'},{v:'5',n:'高階'}];
+  const lvlOpts = [{v:'1',n:'新'},{v:'2',n:'初'},{v:'3',n:'中'},{v:'4',n:'高'}];
   editSel.innerHTML = lvlOpts.map(l=>`<option value="${l.v}"${l.v===targetLvl?' selected':''}>${l.n}</option>`).join('');
   _editLvl = targetLvl; // 初始值
   document.getElementById('modal-roster-edit').classList.add('open');
@@ -1379,10 +1402,8 @@ function deleteRosterEntry(){
 function addFromRoster(rosterid){
   const re = roster.find(r=>r.id===rosterid);
   if(!re) return;
-  if(players.find(p=>p.name===re.name)){
-    // already in active session, skip silently
-    return;
-  }
+  if(players.find(p=>p.name===re.name)) return;
+  if(!isPro() && players.length >= 16){ showUpgradeHint('免費版最多 16 位球員'); return; }
   players.push({id:nid++, name:re.name, level:re.level, status:'waiting', offTime:null, playCount:0, partnerHistory:[]});
   render();
   renderLeft();
@@ -1419,7 +1440,7 @@ function renderLeft(){
   body.innerHTML='';
 
   // Group roster by tier
-  const TIER_LABEL=['新手','初階','中階','中高','高階'];
+  const TIER_LABEL=['新','初','中','高'];
   const groups = Array.from({length:5},()=>[]);
   roster.forEach(r=>{
     if(filter && !r.name.toLowerCase().includes(filter)) return;
@@ -1586,6 +1607,7 @@ function addPlayer(){
   if(!name){nameEl.focus();return;}
   if(!lvlEl.value){alert('請選擇等級');lvlEl.focus();return;}
   if(players.find(p=>p.name===name)){alert(`「${name}」已在名單中`);return;}
+  if(!isPro() && players.length >= 16){ showUpgradeHint('免費版最多 16 位球員'); return; }
   players.push({id:nid++,name,level:lvlEl.value,status:'waiting',offTime:null,playCount:0,partnerHistory:[]});
   nameEl.value='';
   document.getElementById('modal-add').classList.remove('open');
@@ -2095,14 +2117,14 @@ function exportDataOnce(){
 }
 
 var FIXED_ROSTER = [
-  {id:1, name:'CC',   level:'5', fixed:true},
+  {id:1, name:'CC',   level:'4', fixed:true},
   {id:2, name:'Ken',  level:'6', fixed:true},
-  {id:3, name:'慧珍', level:'5', fixed:true},
+  {id:3, name:'慧珍', level:'4', fixed:true},
   {id:4, name:'灰狼', level:'7', fixed:true},
   {id:5, name:'小齊', level:'4', fixed:true},
   {id:6, name:'阿嘎', level:'7', fixed:true},
   {id:7, name:'冠冠', level:'7', fixed:true},
-  {id:8, name:'等等', level:'5', fixed:true},
+  {id:8, name:'等等', level:'4', fixed:true},
   {id:9, name:'派派', level:'4', fixed:true},
 ];
 
@@ -2185,7 +2207,7 @@ function renderPlayers(){
   });
 
   // Only show players who are NOT in any slot and NOT playing
-  const TIER_LABEL=['新手','初階','中階','中高','高階'];
+  const TIER_LABEL=['新','初','中','高'];
   const groups = Array.from({length:5},()=>[]);
   players.forEach(p=>{
     if(inSlot.has(p.id)) return; // assigned — shown in court card
