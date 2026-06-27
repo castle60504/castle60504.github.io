@@ -560,7 +560,7 @@ header h1{font-size:1.2rem;font-weight:800;}
     <h3>➕ 加入球員庫</h3>
     <div class="row">
       <input id="roster-inp-name" type="text" placeholder="暱稱" maxlength="8" style="flex:2" autocomplete="off" autocorrect="off" autocapitalize="off">
-      <select id="roster-inp-lvl" style="flex:1.4">
+      <select id="roster-inp-lvl" style="flex:1.4" onchange="_rosterAddLvl=this.value">
         <option value="" disabled selected>請選擇</option><option value="1">新手</option><option value="2">初階</option><option value="3">中階</option><option value="4">中高</option><option value="5">高階</option>
       </select>
     </div>
@@ -1291,6 +1291,10 @@ function confirmCourtsModal(){
 // ROSTER MODAL
 // ══════════════════════════════
 function openRosterAddModal(){
+  _rosterAddLvl = '';
+  const sel = document.getElementById('roster-inp-lvl');
+  sel.selectedIndex = 0; // 重置到「請選擇」
+  document.getElementById('roster-inp-name').value = '';
   document.getElementById('modal-roster-add').classList.add('open');
   setTimeout(()=>document.getElementById('roster-inp-name').focus(),100);
 }
@@ -1302,10 +1306,11 @@ function addRosterEntry(){
   const nameEl=document.getElementById('roster-inp-name');
   const lvlEl=document.getElementById('roster-inp-lvl');
   const name=nameEl.value.trim();
+  const lvlVal = _rosterAddLvl || lvlEl.value;
   if(!name){nameEl.focus();return;}
-  if(!lvlEl.value){alert('請選擇等級');lvlEl.focus();return;}
+  if(!lvlVal){alert('請選擇等級');return;}
   if(roster.find(r=>r.name===name)){alert(`「${name}」已在球員庫中`);return;}
-  roster.push({id:rid++, name, level:lvlEl.value});
+  roster.push({id:rid++, name, level:lvlVal});
   nameEl.value='';
   document.getElementById('modal-roster-add').classList.remove('open');
   renderLeft();
@@ -1313,7 +1318,8 @@ function addRosterEntry(){
 }
 
 let editingRosterId = null;
-let _editLvl = ''; // iOS Safari 相容：用 onchange 儲存等級
+let _editLvl = '';       // iOS Safari 相容：用 onchange 儲存等級
+let _rosterAddLvl = ''; // 球員庫新增等級
 
 function openRosterEditModal(rid){
   const r = roster.find(r=>r.id===rid);
