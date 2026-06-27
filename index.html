@@ -2971,7 +2971,7 @@ function manualCheckUpdate(){
   if(btn){ btn.textContent='⏳ 檢查中...'; btn.disabled=true; }
   _fetchVersion()
     .then(function(v){
-      if(btn){ btn.textContent='🔄 更新'; btn.disabled=false; }
+      if(btn){ btn.textContent='更新'; btn.disabled=false; }
       if(_currentVersion === null){ _currentVersion = v; }
       if(v !== _currentVersion){
         _markUpdateAvailable();
@@ -2979,12 +2979,12 @@ function manualCheckUpdate(){
       } else {
         if(btn){
           btn.textContent='✅ 已是最新';
-          setTimeout(function(){ btn.textContent='🔄 更新'; }, 2000);
+          setTimeout(function(){ btn.textContent='更新'; }, 2000);
         }
       }
     })
     .catch(function(){
-      if(btn){ btn.textContent='🔄 更新'; btn.disabled=false; }
+      if(btn){ btn.textContent='更新'; btn.disabled=false; }
     });
 }
 
