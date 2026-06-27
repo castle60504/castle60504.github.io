@@ -340,7 +340,7 @@ header h1{font-size:1.2rem;font-weight:800;}
   .hdr-stats{display:none;}
 
   /* Scrollable layout for mobile */
-  body{height:auto;overflow:auto;padding-top:env(safe-area-inset-top);}
+  body{height:auto;overflow-x:hidden;overflow-y:auto;padding-top:env(safe-area-inset-top);}
   .layout{flex:1;overflow:visible;display:flex;flex-direction:column;}
 
   /* Left panel slide-in drawer */
@@ -370,13 +370,13 @@ header h1{font-size:1.2rem;font-weight:800;}
   .courts-area{
     flex:none;
     padding:6px 8px;gap:8px;
-    overflow-x:scroll;overflow-y:visible;
+    overflow-x:scroll;overflow-y:hidden;
     height:auto;
     display:flex;flex-direction:row;align-items:flex-start;
     -webkit-overflow-scrolling:touch;
     scroll-snap-type:x mandatory;
     scroll-behavior:smooth;
-    overscroll-behavior-x:contain;
+    overscroll-behavior:contain;
     touch-action:pan-x;
   }
   .court-card{
@@ -3159,12 +3159,17 @@ function toggleQueuePanel(){
     if(!tracking) return;
     const dx = e.touches[0].clientX - startX;
     const dy = e.touches[0].clientY - startY;
-    if(Math.abs(dx) > Math.abs(dy)){
+    // 橫向滑動：攔截，只讓場地區域動
+    if(Math.abs(dx) > Math.abs(dy) + 5){
       e.preventDefault();
+      e.stopPropagation();
       const now = Date.now();
       velX = (e.touches[0].clientX - lastX) / Math.max(now - lastT, 1);
       lastX = e.touches[0].clientX; lastT = now;
       area.scrollLeft = startScroll - dx;
+    } else {
+      // 縱向滑動：停止追蹤，讓頁面正常捲動
+      tracking = false;
     }
   }, {passive: false});
 
