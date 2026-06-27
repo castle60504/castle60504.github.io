@@ -503,7 +503,7 @@ header h1{font-size:1.2rem;font-weight:800;}
     <div class="row">
       <input id="inp-name" type="text" placeholder="暱稱" maxlength="8" style="flex:2" autocomplete="off" autocorrect="off" autocapitalize="off">
       <select id="inp-lvl" style="flex:1.4">
-        <option value="1">新手</option><option value="2">初階</option><option value="3" selected>中階</option><option value="4">中高</option><option value="5">高階</option>
+        <option value="" disabled selected>請選擇</option><option value="1">新手</option><option value="2">初階</option><option value="3">中階</option><option value="4">中高</option><option value="5">高階</option>
       </select>
     </div>
     <div class="m-acts">
@@ -561,7 +561,7 @@ header h1{font-size:1.2rem;font-weight:800;}
     <div class="row">
       <input id="roster-inp-name" type="text" placeholder="暱稱" maxlength="8" style="flex:2" autocomplete="off" autocorrect="off" autocapitalize="off">
       <select id="roster-inp-lvl" style="flex:1.4">
-        <option value="1">新手</option><option value="2">初階</option><option value="3" selected>中階</option><option value="4">中高</option><option value="5">高階</option>
+        <option value="" disabled selected>請選擇</option><option value="1">新手</option><option value="2">初階</option><option value="3">中階</option><option value="4">中高</option><option value="5">高階</option>
       </select>
     </div>
     <div class="m-acts">
@@ -1302,6 +1302,7 @@ function addRosterEntry(){
   const lvlEl=document.getElementById('roster-inp-lvl');
   const name=nameEl.value.trim();
   if(!name){nameEl.focus();return;}
+  if(!lvlEl.value){alert('請選擇等級');lvlEl.focus();return;}
   if(roster.find(r=>r.name===name)){alert(`「${name}」已在球員庫中`);return;}
   roster.push({id:rid++, name, level:lvlEl.value});
   nameEl.value='';
@@ -1317,7 +1318,7 @@ function openRosterEditModal(rid){
   if(!r) return;
   editingRosterId = rid;
   document.getElementById('roster-edit-name').value = r.name;
-  document.getElementById('roster-edit-lvl').value = r.level;
+  document.getElementById('roster-edit-lvl').value = String(LVL(r.level)); // 舊值自動對應新1-5
   document.getElementById('modal-roster-edit').classList.add('open');
   setTimeout(()=>document.getElementById('roster-edit-name').focus(), 100);
 }
@@ -1568,6 +1569,7 @@ function addPlayer(){
   const lvlEl=document.getElementById('inp-lvl');
   const name=nameEl.value.trim();
   if(!name){nameEl.focus();return;}
+  if(!lvlEl.value){alert('請選擇等級');lvlEl.focus();return;}
   if(players.find(p=>p.name===name)){alert(`「${name}」已在名單中`);return;}
   players.push({id:nid++,name,level:lvlEl.value,status:'waiting',offTime:null,playCount:0,partnerHistory:[]});
   nameEl.value='';
