@@ -201,7 +201,7 @@ header h1{font-size:1.2rem;font-weight:800;}
 .player-box{flex:1;background:var(--sur);border-radius:8px;padding:6px 7px;display:flex;align-items:center;gap:5px;min-width:0;}
 .player-box.A{border:1px solid #be185d33;}
 .player-box.B{border:1px solid #06574633;}
-.mn{min-width:28px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.55rem;font-weight:900;flex-shrink:0;padding:0 3px;}
+.mn{width:24px;height:24px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:900;flex-shrink:0;}
 .tn{font-size:0.78rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .pair-icon{font-size:0.6rem;color:var(--pur);flex-shrink:0;}
 /* legacy - keep for queue/modal use */
@@ -400,7 +400,7 @@ header h1{font-size:1.2rem;font-weight:800;}
 
   /* 字體放大 */
   .slot-player-name{font-size:1.35rem !important;font-weight:700;}
-  .mn{min-width:32px !important;height:24px !important;font-size:0.68rem !important;}
+  .mn{width:28px !important;height:28px !important;font-size:0.72rem !important;}
   .p-item-top span[style]{font-size:1rem !important;}
   .p-item{padding:10px 11px;}
   .court-card-title{font-size:1.3rem !important;}
@@ -1490,7 +1490,7 @@ function renderLeft(){
         const avgCnt=players.length?players.reduce((s,p)=>s+(p.playCount||0),0)/Math.max(1,players.length):0;
         const cntColor=rCnt>0&&rCnt>=avgCnt+2?'#f87171':rCnt>0?'#60a5fa':'var(--mut)';
         row.innerHTML=`
-          <div class="mn ${LCLS(r.level)}" style="height:26px;min-width:36px;font-size:0.75rem;font-weight:900;flex-shrink:0">${tierName(r.level)}</div>
+          <div class="mn ${LCLS(r.level)}" style="width:32px;height:32px;font-size:0.8rem;font-weight:900;flex-shrink:0">${tierName(r.level)}</div>
           <span class="roster-name">${r.name}${r.fixed?'<span style="font-size:0.55rem;color:var(--pur);margin-left:3px">★</span>':''}</span>
           <button class="btn-roster-edit" onclick="openRosterEditModal(${r.id})" title="編輯">✏️</button>
           <button class="btn-roster-add" onclick="addFromRoster(${r.id})" title="加入本場">＋</button>
@@ -1518,8 +1518,8 @@ function renderLeft(){
       const row=document.createElement('div');
       row.className='pair-roster-row';
       row.innerHTML=`
-        <div class="mn ${LCLS(p1.level)}" style="height:18px;font-size:0.52rem;font-weight:900;flex-shrink:0">${tierName(p1.level)}</div>
-        <div class="mn ${LCLS(p2.level)}" style="height:18px;font-size:0.52rem;font-weight:900;flex-shrink:0;margin-left:2px">${tierName(p2.level)}</div>
+        <div class="mn ${LCLS(p1.level)}" style="width:18px;height:18px;font-size:0.5rem;font-weight:900;flex-shrink:0">${tierName(p1.level)}</div>
+        <div class="mn ${LCLS(p2.level)}" style="width:18px;height:18px;font-size:0.5rem;font-weight:900;flex-shrink:0;margin-left:2px">${tierName(p2.level)}</div>
         <span class="pair-roster-names">${p1.name} 💜 ${p2.name}</span>
       `;
       sec.appendChild(row);
@@ -2309,8 +2309,8 @@ function renderPlayers(){
   if(hint){
     if(selectedPlayerId){
       const sp=players.find(p=>p.id===selectedPlayerId);
-      hint.textContent=sp?`✔ ${sp.name} → 點場地格子派入`:'';
-      hint.classList.add('show');
+      hint.textContent='';
+      hint.classList.remove('show');
     } else {
       hint.textContent='';
       hint.classList.remove('show');
