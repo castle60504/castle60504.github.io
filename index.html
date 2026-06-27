@@ -444,16 +444,14 @@ header h1{font-size:1.2rem;font-weight:800;}
     <div class="hstat"><span class="hsv" id="s-courts">0/3</span><span class="hsl">場地</span></div>
   </div>
   <div class="hdr-right">
-    <button class="btn-update" id="btn-update" onclick="manualCheckUpdate()">🔄 更新</button>
-    <button class="btn-get-link" id="btn-get-link" onclick="getShareLink()">🔗 取得連結</button>
     <button class="btn-roster-toggle" onclick="toggleRosterDrawer()">📋 球員庫</button>
-    <button class="btn-pair-cfg" style="background:#0e7490" onclick="openStatsModal()">📊 戰績圖表</button>
-    <button class="btn-pair-cfg" style="background:#7c3aed" onclick="callAllCourts()">📢 全場叫號</button>
-    <button class="btn-pair-cfg" style="background:var(--cyn)" onclick="openSetupModal()">⚙️ 比賽設定</button>
-    <button class="btn-pair-cfg" style="background:#d97706" onclick="calcFee()">💰 費用</button>
-    <button class="btn-pair-cfg" onclick="openPairModal()">💜 固定搭檔</button>
-    <button class="btn-pair-cfg" style="background:#7f1d1d" onclick="resetSession()">🔄 重置</button>
     <button class="btn-pair-cfg" style="background:var(--grn)" onclick="openAddModal()">➕ 加球員</button>
+    <button class="btn-pair-cfg" onclick="openPairModal()">💜 固定搭檔</button>
+    <button class="btn-pair-cfg" style="background:#7c3aed" onclick="callAllCourts()">📢 全場叫號</button>
+    <button class="btn-pair-cfg" style="background:#0e7490" onclick="openStatsModal()">📊 戰績紀錄</button>
+    <button class="btn-pair-cfg" style="background:#7f1d1d" onclick="resetSession()">🔄 重置</button>
+    <button class="btn-pair-cfg" style="background:var(--cyn)" onclick="openSetupModal()">⚙️ 比賽設定</button>
+    <button class="btn-update" id="btn-update" onclick="manualCheckUpdate()">🔄 更新</button>
   </div>
 </header>
 
@@ -632,15 +630,16 @@ header h1{font-size:1.2rem;font-weight:800;}
     </div>
     <!-- 費用分攤 -->
     <div style="margin-bottom:18px;text-align:left;background:var(--sur2);border-radius:10px;padding:12px 16px;border:1px solid var(--bdr)">
-      <div style="font-size:0.78rem;color:var(--mut);font-weight:700;letter-spacing:.05em;margin-bottom:10px">💰 費用分攤（依時間）</div>
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-        <span style="font-size:0.78rem;color:var(--txt2);white-space:nowrap">開始時間</span>
-        <input type="time" id="setup-fee-start" style="flex:1;background:var(--bg);border:1px solid var(--bdr);border-radius:6px;color:var(--txt);padding:5px 8px;font-size:0.8rem;outline:none">
-      </div>
+      <div style="font-size:0.78rem;color:var(--mut);font-weight:700;letter-spacing:.05em;margin-bottom:10px">💰 費用分攤</div>
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
         <span style="font-size:0.78rem;color:var(--txt2);white-space:nowrap">場地費/時/場</span>
         <input type="number" id="setup-fee-court" min="0" placeholder="0" style="flex:1;background:var(--bg);border:1px solid var(--bdr);border-radius:6px;color:var(--txt);padding:5px 8px;font-size:0.8rem;outline:none">
         <span style="font-size:0.75rem;color:var(--mut)">元</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+        <span style="font-size:0.78rem;color:var(--txt2);white-space:nowrap">打了幾小時</span>
+        <input type="number" id="setup-fee-hours" min="0" step="0.5" placeholder="0" style="flex:1;background:var(--bg);border:1px solid var(--bdr);border-radius:6px;color:var(--txt);padding:5px 8px;font-size:0.8rem;outline:none">
+        <span style="font-size:0.75rem;color:var(--mut)">小時</span>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
         <span style="font-size:0.78rem;color:var(--txt2);white-space:nowrap">用球費（總計）</span>
@@ -832,11 +831,7 @@ function confirmSetup(){
   // 費用
   feeCourtPerHour = parseFloat(document.getElementById('setup-fee-court').value)||0;
   feeBalls        = parseFloat(document.getElementById('setup-fee-balls').value)||0;
-  const startVal  = document.getElementById('setup-fee-start').value;
-  if(startVal){
-    const [h,m]=startVal.split(':').map(Number);
-    feeStartTime=new Date(); feeStartTime.setHours(h,m,0,0);
-  } else { feeStartTime=null; }
+  feeStartTime    = parseFloat(document.getElementById('setup-fee-hours').value)||0; // 存小時數
   document.getElementById('modal-setup').style.display = 'none';
   render();
 }
@@ -846,27 +841,21 @@ function openSetupModal(){
   document.getElementById('setup-score-mode').checked = scoreMode;
   if(feeCourtPerHour) document.getElementById('setup-fee-court').value = feeCourtPerHour;
   if(feeBalls)        document.getElementById('setup-fee-balls').value  = feeBalls;
-  if(feeStartTime){
-    const hh=String(feeStartTime.getHours()).padStart(2,'0');
-    const mm=String(feeStartTime.getMinutes()).padStart(2,'0');
-    document.getElementById('setup-fee-start').value=`${hh}:${mm}`;
-  }
+  if(feeStartTime)    document.getElementById('setup-fee-hours').value  = feeStartTime;
   updateSetupNamingUI();
   document.getElementById('modal-setup').style.display = 'flex';
 }
 
 function calcFee(){
-  if(!feeStartTime && feeCourtPerHour===0 && feeBalls===0){
+  if(feeCourtPerHour===0 && feeBalls===0){
     alert('請先在比賽設定填入費用資料。'); return;
   }
-  const now2=new Date();
-  const hrs=feeStartTime?Math.max(0,(now2-feeStartTime)/3600000):0;
+  const hrs=feeStartTime||0;
   const courtTotal=feeCourtPerHour*courts.length*hrs;
   const total=courtTotal+feeBalls;
   const headCount=players.length||1;
   const perPerson=total/headCount;
-  const timeStr=feeStartTime?`${feeStartTime.getHours().toString().padStart(2,'0')}:${feeStartTime.getMinutes().toString().padStart(2,'0')} → ${now2.getHours().toString().padStart(2,'0')}:${now2.getMinutes().toString().padStart(2,'0')} (${hrs.toFixed(1)}小時)`:'未設定開始時間';
-  alert(`💰 費用分攤\n\n⏱ 時間：${timeStr}\n🏸 場地：${courts.length}場 × ${feeCourtPerHour}元/時 = ${courtTotal.toFixed(0)}元\n🏐 用球：${feeBalls}元\n─────────────\n總計：${total.toFixed(0)} 元\n人數：${headCount} 人\n每人：${perPerson.toFixed(0)} 元`);
+  alert(`💰 費用分攤\n\n🏸 場地：${courts.length}場 × ${feeCourtPerHour}元/時 × ${hrs}小時 = ${courtTotal.toFixed(0)}元\n🏐 用球：${feeBalls}元\n─────────────\n總計：${total.toFixed(0)} 元\n人數：${headCount} 人\n每人：${perPerson.toFixed(0)} 元`);
 }
 
 function closeSetupModal(){
@@ -1199,7 +1188,6 @@ function renderLeft(){
         row.innerHTML=`
           <div class="mn ${LCLS(r.level)}" style="width:24px;height:24px;font-size:0.62rem;font-weight:900;flex-shrink:0">${r.level}</div>
           <span class="roster-name">${r.name}${r.fixed?'<span style="font-size:0.55rem;color:var(--pur);margin-left:3px">★</span>':''}</span>
-          ${rCnt>0?`<span style="font-size:0.68rem;font-weight:800;color:${cntColor};flex-shrink:0">${rCnt}場</span>`:''}
           <button class="btn-roster-edit" onclick="openRosterEditModal(${r.id})" title="編輯">✏️</button>
           <button class="btn-roster-add" onclick="addFromRoster(${r.id})" title="加入本場">＋</button>
         `;
@@ -1479,7 +1467,7 @@ function finishCourtWithScore(cid, sA, sB){
     c.playerSlots.forEach(id=>{
       if(id===null) return;
       const p=players.find(p=>p.id===id);
-      if(p){ p.status='cooling'; p.offTime=offAt; p.playCount=(p.playCount||0)+1; }
+      if(p){ p.status='cooling'; p.offTime=offAt; }
     });
     c._lastWinners=[];
     c.playerSlots=[null,null,null,null];
@@ -1509,7 +1497,7 @@ function finishCourtWithScore(cid, sA, sB){
   c.playerSlots.forEach(id=>{
     if(id===null) return;
     const p=players.find(p=>p.id===id);
-    if(p){ p.status='cooling'; p.offTime=offAt; p.playCount=(p.playCount||0)+1; }
+    if(p){ p.status='cooling'; p.offTime=offAt; }
   });
 
   const winnerIds=sA>sB?teamA.map(p=>p.id):sB>sA?teamB.map(p=>p.id):[];
