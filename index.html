@@ -366,22 +366,25 @@ header h1{font-size:1.2rem;font-weight:800;}
     flex-shrink:0;
   }
 
-  /* Courts area: single court tab view, no horizontal scroll */
+  /* Courts area: horizontal snap scroll */
   .courts-area{
     flex:none;
-    padding:6px 8px;
-    overflow:visible;
+    padding:6px 8px;gap:8px;
+    overflow-x:scroll;overflow-y:visible;
     height:auto;
-    display:block;
+    display:flex;flex-direction:row;align-items:flex-start;
+    -webkit-overflow-scrolling:touch;
+    scroll-snap-type:x mandatory;
+    scroll-behavior:smooth;
+    overscroll-behavior-x:contain;
+    touch-action:pan-x;
   }
   .court-card{
-    width:100%;
-    display:none;
-    flex-direction:column;
+    min-width:calc(100vw - 32px);flex:0 0 calc(100vw - 32px);
+    scroll-snap-align:start;
+    display:flex;flex-direction:column;
     height:fit-content !important;
-  }
-  .court-card.mobile-visible{
-    display:flex !important;
+    align-self:flex-start !important;
   }
 
   /* Queue panel — natural height, no cap */
@@ -2789,8 +2792,7 @@ function renderCourts(){
     const isReady=slotsFull(c)&&!isPlay;
     const card=document.createElement('div');
     card.id=`court-card-${c.id}`;
-    const isMobileVisible = isMobile() && (_activeMobileCourtId===null ? courts.indexOf(c)===0 : c.id===_activeMobileCourtId);
-    card.className='court-card'+(isPlay?' active':'')+(isMobileVisible?' mobile-visible':'');
+    card.className='court-card'+(isPlay?' active':'');
     const lblCls=isPlay?'lp':isReady?'lr':'le';
     const lblTxt=isPlay?'⚔️ 比賽中':isReady?'✓ 待開始':'空場';
 
@@ -2879,31 +2881,49 @@ function renderCourts(){
     const tab=document.createElement('button');
     tab.className='court-tab'+(isPlay?' active':'');
     tab.textContent=`${courtLabel(c)}`;
-    tab.dataset.courtId = c.id;
-    tab.onclick=()=>{ selectCourtTab(c.id); };
+    tab.onclick=()=>{
+      const cardEl=document.getElementById(`court-card-${c.id}`);
+      if(cardEl) cardEl.scrollIntoView({behavior:'smooth',block:'nearest',inline:'start'});
+    };
     tabBar.appendChild(tab);
   });
 
-  // Show first court by default on mobile
-  if(courts.length>0) selectCourtTab(_activeMobileCourtId||courts[0].id);
+  // IntersectionObserver: highlight tab of currently visible court
+  const courtsArea = document.getElementById('courts-area');
+  if(courtsArea && 'IntersectionObserver' in window){
+    const tabs = Array.from(tabBar.querySelectorAll('.court-tab'));
+    let ignoreObserver = false;
+    tabs.forEach((tab, idx)=>{
+      const origClick = tab.onclick;
+      tab.onclick = ()=>{
+        ignoreObserver = true;
+        tabs.forEach(t=>t.classList.remove('viewing'));
+        tab.classList.add('viewing');
+        if(origClick) origClick();
+        clearTimeout(tab._ignoreTimer);
+        tab._ignoreTimer = setTimeout(()=>{ ignoreObserver = false; }, 700);
+      };
+    });
+    const observer = new IntersectionObserver(entries=>{
+      if(ignoreObserver) return;
+      entries.forEach(entry=>{
+        const idx = courts.findIndex(c=>c.id===parseInt(entry.target.id.replace('court-card-','')));
+        if(idx<0||!tabs[idx]) return;
+        if(entry.isIntersecting){
+          tabs.forEach(t=>t.classList.remove('viewing'));
+          tabs[idx].classList.add('viewing');
+          tabs[idx].scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+        }
+      });
+    }, {root: courtsArea, threshold: 0.5});
+    courts.forEach(c=>{
+      const card = document.getElementById(`court-card-${c.id}`);
+      if(card) observer.observe(card);
+    });
+  }
 }
 
-var _activeMobileCourtId = null;
 function isMobile(){ return window.innerWidth < 640; }
-
-function selectCourtTab(cid){
-  _activeMobileCourtId = cid;
-  if(!isMobile()) return; // 桌面版不需要切換
-  // 隱藏所有場地卡
-  document.querySelectorAll('.court-card').forEach(el=>el.classList.remove('mobile-visible'));
-  // 顯示選中的場地
-  const card = document.getElementById('court-card-'+cid);
-  if(card) card.classList.add('mobile-visible');
-  // 更新 tab 高亮
-  document.querySelectorAll('.court-tab').forEach(t=>{
-    t.classList.toggle('viewing', parseInt(t.dataset.courtId)===cid);
-  });
-}
 
 function renderQueue(){
   // Queue merged into renderPlayers
@@ -3110,6 +3130,57 @@ function toggleQueuePanel(){
   if(body){ body.style.display = _queueOpen ? '' : 'none'; }
   if(arrow){ arrow.style.transform = _queueOpen ? '' : 'rotate(180deg)'; }
 }
+
+// ── 手機橫滑場地 ──────────────────────────────────
+(function(){
+  const area = document.getElementById('courts-area');
+  if(!area) return;
+  let startX, startY, startScroll, tracking=false, lastX, lastT, velX=0;
+
+  function cardWidth(){
+    const card = area.querySelector('.court-card');
+    return card ? card.offsetWidth + 8 : area.offsetWidth;
+  }
+  function snapTo(idx){
+    area.scrollTo({left: idx * cardWidth(), behavior:'smooth'});
+  }
+  function currentIdx(){
+    return Math.round(area.scrollLeft / cardWidth());
+  }
+
+  area.addEventListener('touchstart', e=>{
+    startX = lastX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    startScroll = area.scrollLeft;
+    lastT = Date.now(); velX = 0; tracking = true;
+  }, {passive: true});
+
+  area.addEventListener('touchmove', e=>{
+    if(!tracking) return;
+    const dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+    if(Math.abs(dx) > Math.abs(dy)){
+      e.preventDefault();
+      const now = Date.now();
+      velX = (e.touches[0].clientX - lastX) / Math.max(now - lastT, 1);
+      lastX = e.touches[0].clientX; lastT = now;
+      area.scrollLeft = startScroll - dx;
+    }
+  }, {passive: false});
+
+  area.addEventListener('touchend', e=>{
+    if(!tracking) return;
+    tracking = false;
+    const dx = startX - e.changedTouches[0].clientX;
+    const n = courts.length;
+    const cur = currentIdx();
+    if(Math.abs(dx) > 20 || Math.abs(velX) > 0.3){
+      snapTo(Math.max(0, Math.min(n-1, cur + (dx>0?1:-1))));
+    } else {
+      snapTo(cur);
+    }
+  }, {passive: true});
+})();
 
 </script>
 </body>
