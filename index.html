@@ -1607,10 +1607,9 @@ const PARTNER_HISTORY_LEN = 12;
 function courtName(c){ return c.name || String(c.id); }
 function courtSuffix(name){
   var s=String(name);
-  if(/號場|場地/.test(s)) return '';       // 已含後綴
-  if(/^\d+$/.test(s)) return '號場';        // 純數字
-  if(/^[A-Za-z]$/.test(s)) return '場地';  // 單英文字母
-  return '';                                 // 其他自訂名稱
+  if(/號場|場地/.test(s)) return '';   // 已含後綴
+  if(/^\d+$/.test(s)) return '號場';   // 純數字
+  return '場地';                        // 其他一律加場地
 }
 function courtLabel(c){ var n=courtName(c); return n+courtSuffix(n); }
 
@@ -2673,7 +2672,14 @@ function importData(){
 // ══════════════════════════════
 // RENDER
 // ══════════════════════════════
-function render(){ renderPlayers();renderCourts();renderQueue();renderStats();renderLeft();saveData();syncSession(); }
+function syncLevelsFromRoster(){
+  // 確保 session 球員等級和球員庫一致（避免舊資料殘留）
+  players.forEach(function(p){
+    var r = roster.find(function(r){ return r.name===p.name; });
+    if(r && r.level) p.level = r.level;
+  });
+}
+function render(){ syncLevelsFromRoster();renderPlayers();renderCourts();renderQueue();renderStats();renderLeft();saveData();syncSession(); }
 
 function renderPlayers(){
   const list=document.getElementById('player-list');
