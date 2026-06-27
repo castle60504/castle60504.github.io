@@ -940,7 +940,11 @@ async function loadUserRoster(){
 async function saveUserRoster(){
   if(!currentUser || isViewerMode) return;
   try {
-    await db.collection('users').doc(currentUser.uid).set({ roster: roster, rid: rid }, { merge: true });
+    await db.collection('users').doc(currentUser.uid).set({
+      roster: roster, rid: rid,
+      displayName: currentUser.displayName || '',
+      email: currentUser.email || ''
+    }, { merge: true });
   } catch(e){ console.warn('saveUserRoster error:', e); }
 }
 
