@@ -1150,7 +1150,7 @@ function showPlayerCourtAlert(courtName){
   el.innerHTML = `
     <div style="font-size:4rem">🏸</div>
     <div style="font-size:1.8rem;font-weight:900;color:#4ade80;text-align:center">你要上場了！</div>
-    <div style="font-size:1.3rem;color:#fff;text-align:center">${courtName} 號場</div>
+    <div style="font-size:1.3rem;color:#fff;text-align:center">${courtName}${courtSuffix(courtName)}</div>
     <button onclick="document.getElementById('my-court-alert').style.display='none'"
       style="margin-top:16px;background:#16a34a;border:none;border-radius:10px;padding:14px 40px;color:#fff;font-size:1.1rem;font-weight:700;cursor:pointer">
       知道了
@@ -1605,6 +1605,14 @@ function tierName(level){ return TIER_NAMES[tierOf(level)]||''; }
 const PARTNER_HISTORY_LEN = 12;
 
 function courtName(c){ return c.name || String(c.id); }
+function courtSuffix(name){
+  var s=String(name);
+  if(/號場|場地/.test(s)) return '';       // 已含後綴
+  if(/^\d+$/.test(s)) return '號場';        // 純數字
+  if(/^[A-Za-z]$/.test(s)) return '場地';  // 單英文字母
+  return '';                                 // 其他自訂名稱
+}
+function courtLabel(c){ var n=courtName(c); return n+courtSuffix(n); }
 
 function now(){ return Date.now(); }
 function restSecs(p){ return p.offTime ? (now()-p.offTime)/1000 : Infinity; }
@@ -2161,7 +2169,7 @@ function openScoreModal(cid){
   pendingFinishCid = cid;
   const c = courts.find(c=>c.id===cid);
   const nameEl = document.getElementById('score-court-name');
-  if(nameEl) nameEl.textContent = `${courtName(c)} 號場`;
+  if(nameEl) nameEl.textContent = `${courtLabel(c)}`;
   ['A','B'].forEach(t=>{
     const sel = document.getElementById(`score-inp-${t}`);
     if(!sel) return;
@@ -2295,9 +2303,9 @@ function callCourt(cid){
   if(!c) return;
   const names = c.playerSlots.map(function(id){ var p=players.find(function(pl){return pl.id===id;}); return p?p.name:null; }).filter(Boolean);
   if(names.length===0){ return; }
-  const label = `${courtName(c)} 號場`;
+  const label = `${courtLabel(c)}`;
   showAnnounceBanner(label, names);
-  speak(`請 ${names.join('、')} 到 ${courtName(c)} 號場`);
+  speak(`請 ${names.join('、')} 到 ${courtLabel(c)}`);
 }
 
 function resetSession(){
@@ -2328,14 +2336,14 @@ function callAllCourts(){
   function announceNext(i){
     if(i>=queue.length) return;
     const {c, names} = queue[i];
-    const label = `${courtName(c)} 號場`;
+    const label = `${courtLabel(c)}`;
     showAnnounceBanner(label, names);
     if(!('speechSynthesis' in window)){
       setTimeout(()=>announceNext(i+1), 3000);
       return;
     }
     window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance(`請 ${names.join('、')} 到 ${courtName(c)} 號場`);
+    const utt = new SpeechSynthesisUtterance(`請 ${names.join('、')} 到 ${courtLabel(c)}`);
     utt.lang='zh-TW'; utt.rate=0.88; utt.pitch=1;
     const voices=window.speechSynthesis.getVoices();
     const zhVoice=voices.find(v=>v.lang.startsWith('zh'));
@@ -2826,7 +2834,7 @@ function renderCourts(){
         ${isPlay?`<span style="font-size:0.72rem;font-weight:700;color:#4ade80;letter-spacing:.04em">● 比賽中</span>`:'<span></span>'}
       </div>
       <div class="court-grid" style="background:rgba(190,24,93,0.08);border-radius:8px 8px 0 0">${[0,1].map(pos=>renderSlot(pos)).join('')}</div>
-      <div class="court-net"><div class="net-line"></div><div class="court-center-label">${courtName(c)} 號場</div><div class="net-line"></div></div>
+      <div class="court-net"><div class="net-line"></div><div class="court-center-label">${courtLabel(c)}</div><div class="net-line"></div></div>
       <div class="court-grid" style="background:rgba(6,87,70,0.1);border-radius:0 0 8px 8px">${[2,3].map(pos=>renderSlot(pos)).join('')}</div>
     `;
 
@@ -2843,7 +2851,7 @@ function renderCourts(){
     `;
 
     card.innerHTML=`
-      <div class="court-card-title">${courtName(c)} 號場</div>
+      <div class="court-card-title">${courtLabel(c)}</div>
       <div class="court-body">${body}</div>
       <hr class="staging-separator">
       ${stagingHtml}
@@ -2860,7 +2868,7 @@ function renderCourts(){
     // Tab
     const tab=document.createElement('button');
     tab.className='court-tab'+(isPlay?' active':'');
-    tab.textContent=`${courtName(c)} 號場`;
+    tab.textContent=`${courtLabel(c)}`;
     tab.onclick=()=>{
       const cardEl=document.getElementById(`court-card-${c.id}`);
       if(cardEl) cardEl.scrollIntoView({behavior:'smooth',block:'nearest',inline:'start'});
@@ -3020,7 +3028,7 @@ function openStatsModal(){
       const win = m.scoreA > m.scoreB ? '← A勝' : m.scoreB > m.scoreA ? 'B勝 →' : '';
       const winColor = m.scoreA > m.scoreB ? '#4ade80' : '#f87171';
       return `<div class="match-row">
-        <div class="match-num">第 ${idx} 場・${m.courtName} 號場・${m.time}</div>
+        <div class="match-num">第 ${idx} 場・${m.courtName}${courtSuffix(m.courtName)}・${m.time}</div>
         <div class="match-teams">
           <span style="color:${m.scoreA>m.scoreB?'#4ade80':m.scoreA<m.scoreB?'var(--txt2)':'var(--txt)'};font-weight:${m.scoreA>m.scoreB?700:400}">${nameA}</span>
           <span style="color:var(--mut)">vs</span>
