@@ -360,11 +360,12 @@ header h1{font-size:1.2rem;font-weight:800;}
   /* Court tabs */
   #court-tabs{padding:4px 8px;gap:5px;flex-shrink:0;}
 
-  /* Courts area: horizontal snap scroll, auto height */
+  /* Courts area: horizontal snap scroll, fixed height */
   .courts-area{
-    flex:none;
+    flex:0 0 46vh;
+    height:46vh;
     overflow-x:scroll;
-    overflow-y:hidden;
+    overflow-y:auto;
     scroll-snap-type:x mandatory;
     -webkit-overflow-scrolling:touch;
     overscroll-behavior-x:contain;
@@ -379,6 +380,7 @@ header h1{font-size:1.2rem;font-weight:800;}
     scroll-snap-align:start;
     display:flex;flex-direction:column;
     box-sizing:border-box;
+    min-height:100%;
   }
 
   /* Queue panel — takes remaining space, scrollable */
@@ -2274,10 +2276,11 @@ function finishCourtWithScore(cid, sA, sB){
   c.playerSlots=[null,null,null,null];
   c.status='empty';
 
-  if(c.nextSlots.every(id=>id!==null)){
+  if(c.nextSlots.some(id=>id!==null)){
     c.playerSlots=[...c.nextSlots];
     c.nextSlots=[null,null,null,null];
-    startCourt(cid);
+    if(c.playerSlots.every(id=>id!==null)) startCourt(cid);
+    else render();
   } else { render(); }
 }
 
@@ -2436,24 +2439,15 @@ function autoFillAll(){
   });
   courts.forEach(c=>{
     if(c.status==='playing') return;
-    if(slotsFull(c)) return; // 已滿4人，跳過
-    // 已在 playerSlots 的球員視為 pinned（保留位置）
-    const slotPinned=c.playerSlots.map((id,i)=>id!==null?players.find(p=>p.id===id):null).filter(Boolean);
-    // 再加 nextSlots 裡的球員
-    const nextPinned=c.nextSlots.filter(id=>id!==null).map(id=>players.find(p=>p.id===id)).filter(Boolean);
-    // 合併，去重
-    const pinnedIds=new Set([...slotPinned,...nextPinned].map(p=>p.id));
-    const pinned=[...slotPinned,...nextPinned.filter(p=>!slotPinned.some(sp=>sp.id===p.id))];
-    const need=4-pinned.length;
-    if(need<=0){ c.nextSlots=[null,null,null,null]; return; }
-    const pool=waitingQueue().filter(p=>!occupied.has(p.id)&&!pinnedIds.has(p.id));
-    if(pool.length<need) return;
-    const extra=(smartPick4(pool)||pool).slice(0,need);
-    const all4=[...pinned,...extra];
-    if(all4.length<4) return;
-    all4.forEach(p=>occupied.add(p.id));
-    c.playerSlots=assignTeams(all4.slice(0,4));
-    c.nextSlots=[null,null,null,null];
+    if(slotsFull(c)) return;
+    const emptyCount=c.playerSlots.filter(id=>id===null).length;
+    if(emptyCount===0) return;
+    const pool=waitingQueue().filter(p=>!occupied.has(p.id));
+    if(pool.length<emptyCount) return;
+    const extra=(smartPick4(pool)||pool).slice(0,emptyCount);
+    let ei=0;
+    c.playerSlots=c.playerSlots.map(id=>id!==null?id:(extra[ei++]?.id??null));
+    extra.forEach(p=>occupied.add(p.id));
   });
   render();
 }
